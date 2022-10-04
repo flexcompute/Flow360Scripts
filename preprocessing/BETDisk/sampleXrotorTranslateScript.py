@@ -1,5 +1,12 @@
 """
 This module is meant as an example of how you would use the Xrotor => Flow360 BET disk translator function
+Since the Xrotor input file does not provide all of the required information. We need to enter the remaining information
+that the BET disk implementation needs. Things like disk location, thrust axis etc...
+
+This can be done either by reading in a JSON file you have setup with all the information not included in the C81 polars
+or you can hard code them in you translator script.
+
+In this example, all the required values are hard coded in this sample script.
 
 EXAMPLE useage:
     python3 sampleXrotorTranslateScript.py
