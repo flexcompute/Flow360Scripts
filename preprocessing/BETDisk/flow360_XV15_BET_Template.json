@@ -1,0 +1,81 @@
+{
+  "geometry": {
+      "endianness": "little",
+      "refArea": 70685.83470577035,
+      "momentCenter": [
+          0,
+          0,
+          0
+      ],
+      "momentLength": [
+          1,
+          1,
+          1
+      ]
+  },
+  "volumeOutput": {
+      "outputFormat": "tecplot",
+      "primitiveVars": true,
+      "vorticity": false,
+      "residualNavierStokes": false,
+      "residualTurbulence": false,
+      "T": false,
+      "s": false,
+      "Cp": false,
+      "mut": false,
+      "mutRatio": false,
+      "betMetrics": true,
+      "qcriterion": true
+  },
+  "surfaceOutput": {
+      "outputFormat": "both",
+      "animationFrequency": -1,
+      "primitiveVars": true,
+      "Cp": true,
+      "Cf": true,
+      "CfVec": true
+  },
+  "navierStokesSolver": {
+      "tolerance": 1e-10,
+      "linearIterations": 25,
+      "kappaMUSCL": -1,
+      "limitVelocity": false,
+      "limitPressureDensity": false,
+      "updateJacobianFrequency": 4
+  },
+  "turbulenceModelSolver": {
+      "modelType": "None",
+      "tolerance": 1e-08,
+      "linearIterations": 15,
+      "kappaMUSCL": -1,
+      "DDES": false,
+      "rotationCorrection": false,
+      "updateJacobianFrequency": 2,
+      "equationEvalFrequency": 1
+  },
+  "freestream": {
+      "Mach": 0.0,
+      "muRef": 1.95151e-06,
+      "MachRef": 0.69,
+      "Temperature": 288.15,
+      "alphaAngle": -90,
+      "betaAngle": 0,
+      "turbulentViscosityRatio": 0
+  },
+  "slidingInterfaces": [],
+  "boundaries": {
+      "1": {
+          "type": "Freestream"
+      }
+  },
+  "timeStepping": {
+      "timeStepSize": "inf",
+      "maxPhysicalSteps": 1,
+      "maxPseudoSteps": 10000,
+      "CFL": {
+          "initial": 1,
+          "final": 100,
+          "rampSteps": 500
+      }
+  }
+}
