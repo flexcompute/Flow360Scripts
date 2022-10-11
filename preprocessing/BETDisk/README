@@ -4,17 +4,17 @@ It contains the main translator script: BETTranslatorInterface.py that should be
 
 This BETTranslatorInterface.py script has the functionality to translate 4 different kinds of common propeller
 shape information:
-1-Xrotor: If you have an Xrotor input file then please look at the sampleXrotorTranslateScript.py script as an example of how to implement your own translator.
+1-Xrotor: If you have an Xrotor input file then please look at the examples/xrotorTranslator/sampleXrotorTranslateScript.py script as an example of how to implement your own translator.
 
-2-DFDC:If you have a DFDC input file then please look at the sampleDFDCTranslateScript.py script as an example of how to implement your own translator.
+2-DFDC:If you have a DFDC input file then please look at the examples/dfdcTranslator/sampleDFDCTranslateScript.py script as an example of how to implement your own translator.
 
-3-C81 polars: IF all you have are 2D section polars of your propeller blades then you can use the sampleC81TranslateScript.py as an example
+3-C81 polars: IF all you have are 2D section polars of your propeller blades then you can use the examples/c81Translator/sampleC81TranslateScript.py as an example
 
-4-Xfoil Polars: If you have analyzed your 2D foil section using Xfoil and exported the polars using the Xfoil PACC command, we can use those as inputs to the translator. See the sampleXfoilTranslateScript.py
+4-Xfoil Polars: If you have analyzed your 2D foil section using Xfoil and exported the polars using the Xfoil PACC command, we can use those as inputs to the translator. See the examples/xfoilTranslator/sampleXfoilTranslateScript.py
 
 We have also provided a plotBETPOlars.py script that takes the resulting Flow360 input JSON file and plots the BET polars defined inside it. This is very useful to make sure the 2D polars that will be given to Flow360 are as expected.
 
 In this directory we also have files called:
 dfdc_xv15_twist0.case and dfdcTest.case which are sample DFDC input files
 xv15_like_twist0.xrotor and ecruzer.prop which are sample Xrotor input files
-flow360_XV15_BET_Template.json is a sample Flow360 input JSON file to which we will add the BET disk information. 
+flow360_XV15_BET_Template.json is a sample Flow360 input JSON file to which we will add the BET disk information.
