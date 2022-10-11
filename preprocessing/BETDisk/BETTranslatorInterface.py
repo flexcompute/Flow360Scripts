@@ -17,19 +17,6 @@ from numpy import arange, array, clip, exp, log
 import json
 
 
-# to print in colors to the terminal
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 ########################################################################################################################
 def check_comment(comment_line, numelts):
     """
@@ -811,7 +798,7 @@ def generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
 
 
 ########################################################################################################################
-def main():
+def test_translator():
     """
     run the translator with a representative set of inputs
     dumps betDisk JSON file that can be added to a Flow360 JSON file.
@@ -823,7 +810,7 @@ def main():
     tipGap = 'inf'
     bladeLineChord = 1
     # initialBladeDirection =  [1, 0, 0]  # Used for time accurate Blade Line simulations
-    xrotorFileName = 'ecruzer.prop'
+    xrotorFileName = 'examples/xrotorTranslator/ecruzer.prop'
     axisOfRotation = [0, 0, 1]
     centerOfRotation = [0, 0, 0]
     rotationDirectionRule = 'rightHand'
@@ -840,5 +827,5 @@ def main():
 
 ########################################################################################################################
 if __name__ == '__main__':
-    # if run on its own, then just run the main() function
-    main()
+    # if run on its own, then just run the test_translator() function
+    test_translator()
