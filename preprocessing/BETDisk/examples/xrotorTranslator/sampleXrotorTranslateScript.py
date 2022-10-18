@@ -12,10 +12,15 @@ EXAMPLE useage:
     python3 sampleXrotorTranslateScript.py
 
 """
-
-import ....BETTranslatorInterface as interface
+import sys
 import json
 import os
+
+#### NEEDS TO BE FIXED
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ‘../..’)))
+# import fileName
+from BETTranslatorInterface import generateXrotorBETJSON
+########
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -75,7 +80,7 @@ def main():
         betdiskParams = getBetDiskParams(diskIdx)
         xrotorFilePath = xrotorFilePathList[diskIdx]
 
-        xrotorInputDicts[diskIdx] = interface.generateXrotorBETJSON(xrotorFilePath, betdiskParams['axisOfRotation'],
+        xrotorInputDicts[diskIdx] = generateXrotorBETJSON(xrotorFilePath, betdiskParams['axisOfRotation'],
                                     betdiskParams['centerOfRotation'],
                                     betdiskParams['rotationDirectionRule'],
                                     diskThickness=betdiskParams['thickness'],
