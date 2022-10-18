@@ -16,11 +16,12 @@ import sys
 import json
 import os
 
-#### NEEDS TO BE FIXED
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ‘../..’)))
-# import fileName
+# this works:
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETTranslatorInterface import generateXrotorBETJSON
-########
+
+# or this works
+from preprocessing.BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -61,6 +62,7 @@ def main():
 
     # path to the Xrotor input file you would like to use.
     xrotorFilePathList = ['xv15_like_twist0.xrotor', 'ecruzer.prop']  # Each BET disk will get its own geometry and polars definition.
+    xrotorFilePathList = [os.path.join(here, file) for file in xrotorFilePathList]
     # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
     numBetDisks = len(xrotorFilePathList)  # number of disks is length of the filename list
 
@@ -68,7 +70,7 @@ def main():
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
     # activated.
-    flow360BaseJsonFile = 'flow360_XV15_BET_Template.json'
+    flow360BaseJsonFile = os.path.join(here, '../flow360_XV15_BET_Template.json')
 
     xrotorInputDicts = [{} for i in range(numBetDisks)]  # This is where we will store the BET disk information once we have it.
 
@@ -97,7 +99,7 @@ def main():
     # Append the Flow360 data to the Flow360 input JSON
 
     # dump the completed Flow360 dictionary to a json file
-    with open('xv15_xrotor_translated_BET.json', 'w') as fh:
+    with open('../xv15_xrotor_translated_BET.json', 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
 
 
