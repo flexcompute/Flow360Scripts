@@ -29,9 +29,7 @@ def check_comment(comment_line, numelts):
 
     # otherwise make sure that we are on a comment line
     if not comment_line[0] == '!' and not (len(comment_line) == numelts):
-        print('wrong format for line:', comment_line)
-        print('QUITTING')
-        quit()
+        raise ValueError(f'wrong format for line: {comment_line}')
 
 
 ########################################################################################################################
@@ -45,8 +43,7 @@ def check_num_values(values_list, numelts):
     # make sure that we have the expected number of values.
     if not (len(values_list) == numelts):
         print('wrong number of items for line:', values_list)
-        print('QUITTING')
-        quit()
+        raise ValueError(f'wrong number of items for line: {values_list}')
 
 ########################################################################################################################
 def readDFDCFile(dfdcFileName):
@@ -279,124 +276,128 @@ def readXROTORFile(xrotorFileName):
       Ubody: (unused) Nacelle perturbation axial  velocity
 
     """
-    fid = open(xrotorFileName, 'r')
 
-    # Top line in the file should start with the XROTOR keywords.
-    topLine=fid.readline()
-    if topLine.find('DFDC') == 0:  # If we are actually doing a DFDC file instead of Xrotor
-        fid.close()  # close the file b/c we will reopen it in readDFDCFile
-        return readDFDCFile(xrotorFileName)
+    try:
+        fid = open(xrotorFileName, 'r')
 
-    elif topLine.find('XROTOR') == -1:
-        print('''This file does not look like an XROTOR or DFDC input file, it does not have XROTOR or DFDC mentioned in its first line. Exiting.''')
-        quit()
+        # Top line in the file should start with the XROTOR keywords.
+        topLine=fid.readline()
+        if topLine.find('DFDC') == 0:  # If we are actually doing a DFDC file instead of Xrotor
+            fid.close()  # close the file b/c we will reopen it in readDFDCFile
+            return readDFDCFile(xrotorFileName)
 
-    # read in lines 2->8 which contains the run case information
-    xrotorInputDict = {}
-    fid.readline()
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 5)
+        elif topLine.find('XROTOR') == -1:
+            raise ValueError(f'This input Xrotor file does not seem to be a valid Xrotor input file')
 
-    values = fid.readline().split()
-    check_num_values(values, 4)
+        # read in lines 2->8 which contains the run case information
+        xrotorInputDict = {}
+        fid.readline()
+        comment_line = fid.readline().upper().split()
+        check_comment(comment_line, 5)
 
-    xrotorInputDict['vso'] = float(values[1])
+        values = fid.readline().split()
+        check_num_values(values, 4)
 
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 5)
-    values = fid.readline().split()
-    check_num_values(values, 4)
-    xrotorInputDict['rad'] = float(values[0])
-    xrotorInputDict['vel'] = float(values[1])
-    xrotorInputDict['adv'] = float(values[2])
+        xrotorInputDict['vso'] = float(values[1])
 
-    fid.readline()
-    fid.readline()
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 2)
-    values = fid.readline().split()
-    check_num_values(values, 1)
+        comment_line = fid.readline().upper().split()
+        check_comment(comment_line, 5)
+        values = fid.readline().split()
+        check_num_values(values, 4)
+        xrotorInputDict['rad'] = float(values[0])
+        xrotorInputDict['vel'] = float(values[1])
+        xrotorInputDict['adv'] = float(values[2])
 
-    nAeroSections = int(values[0])
-    # Initialize the dictionary with all the information to re-create the polars at each defining aero section.
-    xrotorInputDict['nAeroSections'] = nAeroSections
-    xrotorInputDict['rRstations'] = [0] * nAeroSections
-    xrotorInputDict['a0deg'] = [0] * nAeroSections
-    xrotorInputDict['dclda'] = [0] * nAeroSections
-    xrotorInputDict['clmax'] = [0] * nAeroSections
-    xrotorInputDict['clmin'] = [0] * nAeroSections
-    xrotorInputDict['dcldastall'] = [0] * nAeroSections
-    xrotorInputDict['dclstall'] = [0] * nAeroSections
-    xrotorInputDict['mcrit'] = [0] * nAeroSections
-    xrotorInputDict['cdmin'] = [0] * nAeroSections
-    xrotorInputDict['clcdmin'] = [0] * nAeroSections
-    xrotorInputDict['dcddcl2'] = [0] * nAeroSections
-
-    for i in range(nAeroSections):  # loop ever each aero section and populate the required variables.
+        fid.readline()
+        fid.readline()
         comment_line = fid.readline().upper().split()
         check_comment(comment_line, 2)
         values = fid.readline().split()
         check_num_values(values, 1)
-        xrotorInputDict['rRstations'][i] = float(values[0])
 
-        comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
-        values = fid.readline().split()
-        check_num_values(values, 4)
-        xrotorInputDict['a0deg'][i] = float(values[0])
-        xrotorInputDict['dclda'][i] = float(values[1])
-        xrotorInputDict['clmax'][i] = float(values[2])
-        xrotorInputDict['clmin'][i] = float(values[3])
+        nAeroSections = int(values[0])
+        # Initialize the dictionary with all the information to re-create the polars at each defining aero section.
+        xrotorInputDict['nAeroSections'] = nAeroSections
+        xrotorInputDict['rRstations'] = [0] * nAeroSections
+        xrotorInputDict['a0deg'] = [0] * nAeroSections
+        xrotorInputDict['dclda'] = [0] * nAeroSections
+        xrotorInputDict['clmax'] = [0] * nAeroSections
+        xrotorInputDict['clmin'] = [0] * nAeroSections
+        xrotorInputDict['dcldastall'] = [0] * nAeroSections
+        xrotorInputDict['dclstall'] = [0] * nAeroSections
+        xrotorInputDict['mcrit'] = [0] * nAeroSections
+        xrotorInputDict['cdmin'] = [0] * nAeroSections
+        xrotorInputDict['clcdmin'] = [0] * nAeroSections
+        xrotorInputDict['dcddcl2'] = [0] * nAeroSections
 
-        comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
-        values = fid.readline().split()
-        check_num_values(values, 4)
-        xrotorInputDict['dcldastall'][i] = float(values[0])
-        xrotorInputDict['dclstall'][i] = float(values[1])
-        xrotorInputDict['mcrit'][i] = float(values[3])
+        for i in range(nAeroSections):  # loop ever each aero section and populate the required variables.
+            comment_line = fid.readline().upper().split()
+            check_comment(comment_line, 2)
+            values = fid.readline().split()
+            check_num_values(values, 1)
+            xrotorInputDict['rRstations'][i] = float(values[0])
 
-        comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 4)
-        values = fid.readline().split()
-        check_num_values(values, 3)
-        xrotorInputDict['cdmin'][i] = float(values[0])
-        xrotorInputDict['clcdmin'][i] = float(values[1])
-        xrotorInputDict['dcddcl2'][i] = float(values[2])
+            comment_line = fid.readline().upper().split()
+            check_comment(comment_line, 5)
+            values = fid.readline().split()
+            check_num_values(values, 4)
+            xrotorInputDict['a0deg'][i] = float(values[0])
+            xrotorInputDict['dclda'][i] = float(values[1])
+            xrotorInputDict['clmax'][i] = float(values[2])
+            xrotorInputDict['clmin'][i] = float(values[3])
 
+            comment_line = fid.readline().upper().split()
+            check_comment(comment_line, 5)
+            values = fid.readline().split()
+            check_num_values(values, 4)
+            xrotorInputDict['dcldastall'][i] = float(values[0])
+            xrotorInputDict['dclstall'][i] = float(values[1])
+            xrotorInputDict['mcrit'][i] = float(values[3])
+
+            comment_line = fid.readline().upper().split()
+            check_comment(comment_line, 4)
+            values = fid.readline().split()
+            check_num_values(values, 3)
+            xrotorInputDict['cdmin'][i] = float(values[0])
+            xrotorInputDict['clcdmin'][i] = float(values[1])
+            xrotorInputDict['dcddcl2'][i] = float(values[2])
+
+            comment_line = fid.readline().upper().split()
+            check_comment(comment_line, 3)
+            values = fid.readline().split()
+
+        # skip the duct information
+        fid.readline()
+        fid.readline()
+
+        # Now we are done with the various aero sections and we start
+        # looking at blade geometry definitions
         comment_line = fid.readline().upper().split()
         check_comment(comment_line, 3)
         values = fid.readline().split()
+        check_num_values(values, 2)
 
-    # skip the duct information
-    fid.readline()
-    fid.readline()
+        nGeomStations = int(values[0])
+        xrotorInputDict['nGeomStations'] = nGeomStations
+        xrotorInputDict['nBlades'] = int(values[1])
+        xrotorInputDict['rRGeom'] = [0] * nGeomStations
+        xrotorInputDict['cRGeom'] = [0] * nGeomStations
+        xrotorInputDict['beta0Deg'] = [0] * nGeomStations
 
-    # Now we are done with the various aero sections and we start
-    # looking at blade geometry definitions
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 3)
-    values = fid.readline().split()
-    check_num_values(values, 2)
+        comment_line = fid.readline().upper().split()
+        check_comment(comment_line, 5)
 
-    nGeomStations = int(values[0])
-    xrotorInputDict['nGeomStations'] = nGeomStations
-    xrotorInputDict['nBlades'] = int(values[1])
-    xrotorInputDict['rRGeom'] = [0] * nGeomStations
-    xrotorInputDict['cRGeom'] = [0] * nGeomStations
-    xrotorInputDict['beta0Deg'] = [0] * nGeomStations
+        # iterate over all the geometry stations
+        for i in range(nGeomStations):
 
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 5)
+            values = fid.readline().split()
+            check_num_values(values, 4)
+            xrotorInputDict['rRGeom'][i] = float(values[0])
+            xrotorInputDict['cRGeom'][i] = float(values[1])
+            xrotorInputDict['beta0Deg'][i] = float(values[2])
 
-    # iterate over all the geometry stations
-    for i in range(nGeomStations):
-
-        values = fid.readline().split()
-        check_num_values(values, 4)
-        xrotorInputDict['rRGeom'][i] = float(values[0])
-        xrotorInputDict['cRGeom'][i] = float(values[1])
-        xrotorInputDict['beta0Deg'][i] = float(values[2])
+    finally: # We are done reading
+        fid.close()
 
     # Set the twist at the root to be 90 so that it is continuous on
     # either side of the origin. I.e Across blades' root. Also set
@@ -507,10 +508,14 @@ def findClMinMaxAlphas(CLIFT, CLMIN, CLMAX):
     The goal of this function is to separate the linear CL regime (i.e. from CLmin to CLmax) and extract its indices
     We Traverse the list from the beginning until we hit CLMIN
 
-    :param CLIFT: list of floats
-    :param CLMIN: float
-    :param CLMAX: float
-    :return: 2 ints as indices
+
+    Attributes
+    ----------
+
+    CLIFT: list of floats
+    CLMIN: float
+    CLMAX: float
+    return: 2 ints as indices
     """
 
     clMinIdx = 0  # initialize as the first index
@@ -525,35 +530,39 @@ def findClMinMaxAlphas(CLIFT, CLMIN, CLMAX):
 
 
 ########################################################################################################################
-def BlendFuncValue(blendWindow, alpha, alphaMinMax, plusorMinus):
+def blendFuncValue(blendWindow, alpha, alphaMinMax, alphaRange):
     """
     This functions is used to blend the flat plate CL and CD polar to the given Cl and CD polars.
     The returned blend value is 1 when we use the given CL and CD values and 0 when we use the Flat plate values.
     Within the blendWindow range of alphas it returns a COS^2 based smooth blend.
 
+    Attributes
+    ----------
 
-    :param blendWindow: float size of the window we want to blend from the given 2D polar
-    :param alpha: float alpha we are at in radians
-    :param alphaMinMax: float,   alpha min  or alpha max for that 2D polar in radians. Outside of those values we use
+        blendWindow: float size of the window we want to blend from the given 2D polar
+        alpha: float alpha we are at in radians
+        alphaMinMax: float,   alpha min  or alpha max for that 2D polar in radians. Outside of those values we use
     the Flat plate coefficients
-    :param plusorMinus: 1 or -1: used to figure out whether we are doing before CLmin or beyond CLmax
-    :return: float (blend value for that alpha
+        alphaRange: string, used to figure out whether we are doing before CLmin or beyond CLmax
+        return: float (blend value for that alpha
     """
 
-    if plusorMinus == 1:
+    if 'aboveCLmax' in alphaRange:
         # we are on the CLMAX side:
         if alpha < alphaMinMax:
             return 1
         if alpha > alphaMinMax + blendWindow:
             return 0
         return cos((alpha - alphaMinMax) / blendWindow * pi / 2) ** 2
-    if plusorMinus == -1:
+    if 'belowCLmin' in alphaRange:
         # we are on the CLMIN side:
         if alpha > alphaMinMax:
             return 1
         if alpha < alphaMinMax - blendWindow:
             return 0
         return cos((alpha - alphaMinMax) / blendWindow * pi / 2) ** 2
+    else:
+        raise ValueError('alphaRange must be either aboveCLmax or belowCLmin, it is: %s'%alphaRange)
 
 
 ########################################################################################################################
@@ -576,14 +585,14 @@ def blend2flatPlate(CLIFT, CDRAG, alphas, alphaMinIdx, alphaMaxIdx):
     for i in range(alphaMinIdx):  # from -pi to alphaMin in the CLIFT array
         a = alphas[i] * pi / 180  # alpha in radians
 
-        blendVal = BlendFuncValue(blendWindow, a, alphaMin, -1)  # -1 is b/c we are on the alphaCLmin side going up in CL
+        blendVal = blendFuncValue(blendWindow, a, alphaMin, 'belowCLmin')  # we are on the alphaCLmin side going up in CL
         # this follows the flat plate lift and drag equations times the blend val coefficient
         CLIFT[i] = CLIFT[i] * blendVal + (1 - blendVal) * cos(a) * 2 * pi * sin(a) / sqrt(1 + (2 * pi * sin(a)) ** 2)
         CDRAG[i] = CDRAG[i] * blendVal + (1 - blendVal) * sin(a) * (2 * pi * sin(a)) ** 3 / sqrt(1 + (2 * pi * sin(a)) ** 6) + 0.05
 
     for j in range(alphaMaxIdx, len(alphas)):     # from alphaMax to Pi in the CLIFT array
         a = alphas[j] * pi / 180  # alpha in radians
-        blendVal = BlendFuncValue(blendWindow, a, alphaMax, 1)  # 1 is b/c we are on the alphaCLmax side of things going up in CL
+        blendVal = blendFuncValue(blendWindow, a, alphaMax, 'aboveCLmax')  # we are on the alphaCLmax side of things going up in CL
         # this follows the flat plate lift and drag equations times the blend val coefficient
         CLIFT[j] = CLIFT[j] * blendVal + (1 - blendVal) * cos(a) * 2 * pi * sin(a) / sqrt(1 + (2 * pi * sin(a)) ** 2)
         CDRAG[j] = CDRAG[j] * blendVal + (1 - blendVal) * sin(a) * (2 * pi * sin(a)) ** 3 / sqrt(1 + (2 * pi * sin(a)) ** 6) + 0.05
@@ -755,14 +764,11 @@ def generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
     initialBladeDirection = kwargs.pop('initialBladeDirection', [1, 0, 0])
 
     if rotationDirectionRule not in ['rightHand', 'leftHand']:
-        print('Invalid rotationDirectionRule of {}. Exiting.'.format(rotationDirectionRule))
-        quit()
+        raise ValueError(f'Exiting. Invalid rotationDirectionRule of:{rotationDirectionRule}')
     if len(axisOfRotation) != 3:
-        print('axisOfRotation must be a list of size 3. Exiting.')
-        quit()
+        raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
     if len(centerOfRotation) != 3:
-        print('centerOfRotation must be a list of size 3. Exiting')
-        quit()
+        raise ValueError('centerOfRotation must be a list of size 3. Exiting')
 
     xrotorDict = readXROTORFile(xrotorFileName)
 
