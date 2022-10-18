@@ -18,8 +18,12 @@ import sys
 import json
 import os
 
+# this works:
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETTranslatorInterface import generateXrotorBETJSON
+
+# or this works
+from preprocessing.BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -96,7 +100,7 @@ def main():
     # Append the Flow360 data to the Flow360 input JSON
 
     # dump the completed Flow360 dictionary to a json file
-    with open('xv15_xrotor_translated_BET.json', 'w') as fh:
+    with open('../xv15_xrotor_translated_BET.json', 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
 
 
