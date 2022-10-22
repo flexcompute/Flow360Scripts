@@ -16,12 +16,12 @@ import sys
 import json
 import os
 
-#### NEEDS TO BE FIXED
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ‘../..’)))
-# import fileName
-from BETTranslatorInterface import generateXrotorBETJSON
-########
-
+# #### NEEDS TO BE FIXED
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ‘../..’)))
+# # import fileName
+# from BETTranslatorInterface import generateXrotorBETJSON
+# ########
+from preprocessing.BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 here = os.path.dirname(os.path.realpath(__file__))
 
 ########################################################################################################################
