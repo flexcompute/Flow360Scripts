@@ -8,20 +8,18 @@ or you can hard code them in you translator script.
 
 In this example, all the required values are hard coded in this sample script.
 
-EXAMPLE useage:
-    python3 sampleXrotorTranslateScript.py
+
+Example
+-------
+ $   python3 sampleXrotorTranslateScript.py
 
 """
 import sys
 import json
 import os
 
-# this works:
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETTranslatorInterface import generateXrotorBETJSON
-
-# or this works
-from preprocessing.BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -66,7 +64,6 @@ def main():
     # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
     numBetDisks = len(xrotorFilePathList)  # number of disks is length of the filename list
 
-
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
     # activated.
@@ -99,7 +96,7 @@ def main():
     # Append the Flow360 data to the Flow360 input JSON
 
     # dump the completed Flow360 dictionary to a json file
-    with open('../xv15_xrotor_translated_BET.json', 'w') as fh:
+    with open('xv15_xrotor_translated_BET.json', 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
 
 
