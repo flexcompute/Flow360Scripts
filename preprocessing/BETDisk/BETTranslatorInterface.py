@@ -227,11 +227,17 @@ def readXROTORFile(xrotorFileName):
     """
     This functions read in the Xrotor filename provided.
     it does rudimentary checks to make sure the file is truly in the Xrotor format.
-    :param xrotorFileName: string
-    :return: a dictionary with all the required values. That dictionary will be used to create BETdisks section of the
+
+
+    Attributes
+    ----------
+    input: xrotorFileName: string
+    returns: a dictionary with all the required values. That dictionary will be used to create BETdisks section of the
             Flow360 input JSON file.
 
 
+    Xrotor file description
+    -----------------------
     xrotor Input file has the following definitions:
     Case run definition:
     rho :air density (dimensional: kg/m3)
@@ -421,9 +427,11 @@ def generateTwists(xrotorDict, gridUnit):
     """
     Transform the Xrotor format blade twists distribution into the Flow360 standard.
 
-    :param xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    :param gridUnit: float,  Grid unit length in the mesh.
-    :return:  list of dictionaries containing the radius ( in grid units) and twist in degrees.
+    Attributes
+    ----------
+    xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
+    gridUnit: float,  Grid unit length in the mesh.
+    return:  list of dictionaries containing the radius ( in grid units) and twist in degrees.
     """
     # generate the twists vector required from the BET input
     twistVec = []
@@ -441,9 +449,11 @@ def generateChords(xrotorDict, gridUnit):
     """
     Transform the Xrotor format blade chords distribution into the Flow360 standard.
 
-    :param xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    :param gridUnit: float,  Grid unit length in the mesh.
-    :return:  list of dictionaries containing the radius ( in grid units) and chords in grid units.
+    Attributes
+    ----------
+    xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
+    gridUnit: float,  Grid unit length in the mesh.
+    return:  list of dictionaries containing the radius ( in grid units) and chords in grid units.
     """
     # generate the dimensional chord vector required from the BET input
     chordVec = []
@@ -463,7 +473,10 @@ def generateMachs():
     To that end we will generate 4 different tables at 4 different Mach #s
     equivalent to M^2=0, 1/3, 2/3, 0.9
 
-    :return: list of floats
+
+    Attributes
+    ----------
+    return: list of floats
     """
 
     machVec = [0, sqrt(1 / 3), sqrt(2 / 3), sqrt(0.9)]
@@ -475,7 +488,7 @@ def generateReys():
     """
     Flow360 has the functionality to interpolate across Reynolds numbers but we are not using that functionality
     just make it a constant 1
-    :return:
+
     """
     return [1]
 
@@ -484,7 +497,7 @@ def generateReys():
 def generateAlphas():
     """
     Generate the list of Alphas that the BET 2d section polar is for in 1 degree steps from -180 to 180
-    :return: list of floats
+    return: list of floats
     """
     # generate the list of Alphas that the 2d section polar is for:
 
@@ -569,13 +582,16 @@ def blendFuncValue(blendWindow, alpha, alphaMinMax, alphaRange):
 def blend2flatPlate(CLIFT, CDRAG, alphas, alphaMinIdx, alphaMaxIdx):
     """
      Blend the Clift and Cdrag values outside of the normal working range of alphas to the flat plate CL and CD values.
-    :param CLIFT: float
-    :param CDRAG: float
-    :param alphas: list of floats
-    :param alphaMinIdx: int, index within the above list of alphas
-    :param alphaMaxIdx: int, index within the above list of alphas
 
-    :return: 2 Floats representing the blended CL and CD at that alpha
+    Attributes
+    ----------
+    CLIFT: float
+    CDRAG: float
+    alphas: list of floats
+    alphaMinIdx: int, index within the above list of alphas
+    alphaMaxIdx: int, index within the above list of alphas
+
+    return: 2 Floats representing the blended CL and CD at that alpha
     """
 
     blendWindow = 0.5  # 0.5 radians
@@ -614,12 +630,13 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
     Compressible drag is CDC = CDMFACTOR*(Mach-Mcrit_eff)^MEXP
     CDMstall is the drag at which compressible stall begins
 
-
-    :param xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    :param alphas: list of ints, alphas we have for the polar.
-    :param machNum: float, mach number we do this polar at.
-    :param nrRstation: int, which r/R station we have to define this polar for.
-    :return: 2 list of floats representing the CL and CD for  that polar
+    Attributes
+    ----------
+    xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
+    alphas: list of ints, alphas we have for the polar.
+    machNum: float, mach number we do this polar at.
+    nrRstation: int, which r/R station we have to define this polar for.
+    return: 2 list of floats representing the CL and CD for  that polar
     """
 
     CDMFACTOR = 10.0
@@ -721,11 +738,14 @@ def getPolar(xrotorDict, alphas, machs, rRstation):
     since the order of brackets is Mach#, Rey#, Values then we need to return:
     [[[array for MAch #1]],[[array for MAch #2]],[[array for MAch #3]],[[array for MAch #4]]]
 
-    :param xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    :param alphas: list of floats
-    :param machs: list of float
-    :param rRstation: station index.
-    :return: list of dictionaries
+
+    Attributes
+    ----------
+    xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
+    alphas: list of floats
+    machs: list of float
+    rRstation: station index.
+    return: list of dictionaries
     """
 
     secpol = {}
@@ -748,12 +768,14 @@ def generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
     DFDC and Xrotor come from the same family of CFD codes. They are both written by Mark Drela over at MIT.
     we can use the same translator for both DFDC and Xrotor.
 
-    :param xrotorFileName: string, filepath to the Xrotor/DFDC file we want to translate into a BET disk
-    :param axisOfRotation: [x,y,z] coordinates of the rotation vector
-    :param centerOfRotation: [x,y,z] coordinates of the rotation vector
-    :param rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    :param kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    :return: dictionary that we should append to the Flow360.json file we want to run with.
+    Attributes
+    ----------
+    xrotorFileName: string, filepath to the Xrotor/DFDC file we want to translate into a BET disk
+    axisOfRotation: [x,y,z] coordinates of the rotation vector
+    centerOfRotation: [x,y,z] coordinates of the rotation vector
+    rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    return: dictionary that we should append to the Flow360.json file we want to run with.
     """
 
     diskThickness = kwargs['diskThickness']
