@@ -1,9 +1,9 @@
 """
-This module is meant as an example of how you would use the DFDC => Flow360 BET disk translator function
-Since the DFDC input file does not provide all of the required information. We need to enter the remaining information
+This module is meant as an example of how you would use Xfoil generated polars to create the Flow360 BET disk input file.
+Since an Xfoil polar file does not provide all of the required information. We need to enter the remaining information
 that the BET disk implementation needs. Things like disk location, thrust axis etc...
 
-This can be done either by reading in a JSON file you have setup with all the information not included in the DFDC file
+This can be done either by reading in a JSON file you have setup with all the information not included in the xfoil polars
 or you can hard code them in you translator script.
 
 In this example, all the required values are hard coded in this sample script.
@@ -11,7 +11,7 @@ In this example, all the required values are hard coded in this sample script.
 
 Example
 -------
-    $ python3 sampleDFDCTranslateScript.py
+ $   python3 samplexfoilTranslateScript.py
 
 """
 import sys
@@ -19,9 +19,10 @@ import json
 import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from BETTranslatorInterface import generateXrotorBETJSON
+from BETTranslatorInterface import generateXfoilBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
+
 
 ########################################################################################################################
 def getBetDiskParams(diskIdx):
@@ -52,37 +53,32 @@ def getBetDiskParams(diskIdx):
     return betDiskDict[diskIdx] # Since we are doing one BETdisk at a time, return only the betDisk information relevant
 # to the disk we are currently doing.
 
-
 ########################################################################################################################
 def main():
-
     # this example will show you how to create a BET disk input JSON file with 2 BET disks.
 
-    # path to the DFDC input files you would like to use.
-    dfdcFilePathList = ['dfdc_xv15_twist0.case', 'dfdcTest.case']  # Each BET disk will get its own geometry and polars definition.
-    dfdcFilePathList = [os.path.join(here, file) for file in dfdcFilePathList]
-    # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
-    numBetDisks = len(dfdcFilePathList)  # number of disks is length of the filename list
+    # path to the xfoil input file(s) you would like to use.
+    xfoilFilePathList = ['Xv15_xfoil_section1Polars.pacc', 'Xv15_xfoil_section2Polars.pacc']  # Each BET disk will get its own geometry and polars definition.
+    xfoilFilePathList = [os.path.join(here, file) for file in xfoilFilePathList]
+    # # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
+    numBetDisks = 1 # TEMPORARY HARD CODED len(xfoilFilePathList)  # number of disks is length of the filename list
 
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
     # activated.
     flow360BaseJsonFile = os.path.join(here, '../flow360_XV15_BET_Template.json')
 
-    dfdcInputDicts = [{} for i in range(numBetDisks)]  # This is where we will store the BET disk information once we have it.
+    xfoilInputDicts = [{} for i in range(numBetDisks)]  # This is where we will store the BET disk information once we have it.
 
-    # for loop to create each BET disk in turn
+    # for loop to create each disk in turn
     for diskIdx in range(numBetDisks):
 
-        # we need extra information to define a BET disk that is not in the above dfdc file.
+        # we need extra information to define a BET disk that is not in the above xfoil file.
         # Get it for the BET disk we are doing now.
         betdiskParams = getBetDiskParams(diskIdx)
-        dfdcFilePath = dfdcFilePathList[diskIdx]
+        xfoilFilePath = xfoilFilePathList[diskIdx]
 
-        # DFDC and Xrotor come from the same family of CFD codes. They are both written by Mark Drela over at MIT.
-        # we can use the same translator for both DFDC and Xrotor.
-
-        dfdcInputDicts[diskIdx] = generateXrotorBETJSON(dfdcFilePath, betdiskParams['axisOfRotation'],
+        xfoilInputDicts[diskIdx] = generateXfoilBETJSON(xfoilFilePath, betdiskParams['axisOfRotation'],
                                     betdiskParams['centerOfRotation'],
                                     betdiskParams['rotationDirectionRule'],
                                     diskThickness=betdiskParams['thickness'],
@@ -95,15 +91,12 @@ def main():
     with open (flow360BaseJsonFile) as fh:
         flow360Dict  = json.load(fh)
 
-
+    flow360Dict['BETDisks'] = xfoilInputDicts
     # Append the Flow360 data to the Flow360 input JSON
-    flow360Dict['BETDisks'] = dfdcInputDicts
-
 
     # dump the completed Flow360 dictionary to a json file
-    with open('xv15_dfdc_translated_BET.json', 'w') as fh:
+    with open('xv15_xfoil_translated_BET.json', 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
-
 ########################################################################################################################
 if __name__ == '__main__':
     # if run on its own, then just run the main() function
