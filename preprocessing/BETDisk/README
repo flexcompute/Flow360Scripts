@@ -14,7 +14,9 @@ shape information:
 
 We have also provided a plotBETPOlars.py script that takes the resulting Flow360 input JSON file and plots the BET polars defined inside it. This is very useful to make sure the 2D polars that will be given to Flow360 are as expected.
 
-In this directory we also have files called:
+In the example directories we also have files called:
 dfdc_xv15_twist0.case and dfdcTest.case which are sample DFDC input files
 xv15_like_twist0.xrotor and ecruzer.prop which are sample Xrotor input files
+Xv15_c81_sectionXPolars.csv which are sample Xv15 blade section polars in C81 format
+Xv15_xfoil_sectionXPolars.csv which are sample Xv15 blade section polars in xfoil format
 flow360_XV15_BET_Template.json is a sample Flow360 input JSON file to which we will add the BET disk information.
