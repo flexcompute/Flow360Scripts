@@ -18,11 +18,206 @@ import json
 
 
 ########################################################################################################################
+def getc81Polars(filePath, alphas, machs, rRstation):
+    """
+    Return the 2D Cl and CD polar expected by the Flow360 BET model.
+    b/c we have 4 Mach Values * 1 Reynolds value we need 4 different arrays per sectional polar as in:
+    since the order of brackets is Mach#, Rey#, Values then we need to return:
+    [[[array for MAch #1]],[[array for MAch #2]],[[array for MAch #3]],[[array for MAch #4]]]
+
+
+    Attributes
+    ----------
+    xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
+    alphas: list of floats
+    machs: list of float
+    rRstation: station index.
+    return: list of dictionaries
+    """
+
+    secpol = {}
+    secpol['liftCoeffs'] = []
+    secpol['dragCoeffs'] = []
+    for machNum in machs:
+        cl = [0,1,0]
+        cd = [0.01,0.005,0.01]
+
+        secpol['liftCoeffs'].append([cl])
+        secpol['dragCoeffs'].append([cd])
+    return secpol
+
+
+########################################################################################################################
+def generateXfoilBETJSON(c81FileName, axisOfRotation, centerOfRotation,
+                    rotationDirectionRule, **kwargs):
+
+    # --------------THIS IS A TEMPORARY HACK TO GET SOMETHING WORKING TO WEBUI TEAM-----------------------
+    """
+    This function takes in xfoil input files along with the remaining required information and creates a flow360 BET input dictionary
+
+    Attributes
+    ----------
+    xrotorFileName: string, filepath to the C81 files we want to translate into a BET disk
+    axisOfRotation: [x,y,z] coordinates of the rotation vector
+    centerOfRotation: [x,y,z] coordinates of the rotation vector
+    rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    return: dictionary that we should append to the Flow360.json file we want to run with.
+    """
+    diskThickness = kwargs['diskThickness']
+    gridUnit = kwargs['gridUnit']
+    chordRef = kwargs.pop('chordRef', 1.0)
+    nLoadingNodes = kwargs.pop('nLoadingNodes', 20)
+    tipGap = kwargs.pop('tipGap', 'inf')
+    initialBladeDirection = kwargs.pop('initialBladeDirection', [1, 0, 0])
+
+    if rotationDirectionRule not in ['rightHand', 'leftHand']:
+        raise ValueError(f'Exiting. Invalid rotationDirectionRule of:{rotationDirectionRule}')
+    if len(axisOfRotation) != 3:
+        raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
+    if len(centerOfRotation) != 3:
+        raise ValueError('centerOfRotation must be a list of size 3. Exiting')
+
+    # xrotorDict = readXROTORFile(xrotorFileName)
+
+
+    diskJSON = {'axisOfRotation': axisOfRotation,
+                'centerOfRotation': centerOfRotation,
+                'rotationDirectionRule': rotationDirectionRule}
+
+    # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
+
+
+        # Values are hard coded as a temporaru setupfor WEBUI creation
+    diskJSON['omega'] = 0.01
+    diskJSON['numberOfBlades'] = 2
+    diskJSON['radius'] = 150
+    diskJSON['twists'] =[
+                {
+                    "radius": 0.0,
+                    "twist": 90.0
+                },
+                {
+                    "radius": 150,
+                    "twist": 0
+                }]
+    diskJSON['chords'] = [
+                {
+                    "radius": 0.0,
+                    "chord": 0.0
+                },
+                {
+                    "radius": 150,
+                    "chord": 14
+                }]
+    diskJSON['MachNumbers'] = generateMachs()
+    diskJSON['alphas'] = [-180.0, 0, 180.0]
+    diskJSON['ReynoldsNumbers'] = [1]
+    diskJSON['thickness'] = diskThickness
+    diskJSON['chordRef'] = chordRef
+    diskJSON['nLoadingNodes'] = nLoadingNodes
+    diskJSON['tipGap'] = tipGap
+    diskJSON['sectionalRadiuses'] = [diskJSON['radius']]
+    diskJSON['initialBladeDirection'] = initialBladeDirection
+    diskJSON['sectionalPolars'] = []
+
+    for secId in range(0, 1):
+        polar = getc81Polars(c81FileName, diskJSON['alphas'], diskJSON['MachNumbers'], secId)
+        diskJSON['sectionalPolars'].append(polar)
+
+    return diskJSON
+
+########################################################################################################################
+def generateC81BETJSON(c81FileName, axisOfRotation, centerOfRotation,
+                    rotationDirectionRule, **kwargs):
+
+    # --------------THIS IS A TEMPORARY HACK TO GET SOMETHING WORKING TO WEBUI TEAM-----------------------
+
+    """
+    This function takes in c81 input files along with the remaining required information and creates a flow360 BET input dictionary
+
+    Attributes
+    ----------
+    xrotorFileName: string, filepath to the C81 files we want to translate into a BET disk
+    axisOfRotation: [x,y,z] coordinates of the rotation vector
+    centerOfRotation: [x,y,z] coordinates of the rotation vector
+    rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    return: dictionary that we should append to the Flow360.json file we want to run with.
+    """
+    diskThickness = kwargs['diskThickness']
+    gridUnit = kwargs['gridUnit']
+    chordRef = kwargs.pop('chordRef', 1.0)
+    nLoadingNodes = kwargs.pop('nLoadingNodes', 20)
+    tipGap = kwargs.pop('tipGap', 'inf')
+    initialBladeDirection = kwargs.pop('initialBladeDirection', [1, 0, 0])
+
+    if rotationDirectionRule not in ['rightHand', 'leftHand']:
+        raise ValueError(f'Exiting. Invalid rotationDirectionRule of:{rotationDirectionRule}')
+    if len(axisOfRotation) != 3:
+        raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
+    if len(centerOfRotation) != 3:
+        raise ValueError('centerOfRotation must be a list of size 3. Exiting')
+
+    # xrotorDict = readXROTORFile(xrotorFileName)
+
+
+    diskJSON = {'axisOfRotation': axisOfRotation,
+                'centerOfRotation': centerOfRotation,
+                'rotationDirectionRule': rotationDirectionRule}
+
+    # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
+
+
+        # Values are hard coded as a temporaru setupfor WEBUI creation
+    diskJSON['omega'] = 0.01
+    diskJSON['numberOfBlades'] = 2
+    diskJSON['radius'] = 1
+    diskJSON['twists'] =[
+                {
+                    "radius": 0.0,
+                    "twist": 90.0
+                },
+                {
+                    "radius": 1,
+                    "twist": 0
+                }]
+    diskJSON['chords'] = [
+                {
+                    "radius": 0.0,
+                    "chord": 0.0
+                },
+                {
+                    "radius": 1,
+                    "chord": 1
+                }]
+    diskJSON['MachNumbers'] = generateMachs()
+    diskJSON['alphas'] = [-180.0, 0, 180.0]
+    diskJSON['ReynoldsNumbers'] = [1]
+    diskJSON['thickness'] = diskThickness
+    diskJSON['chordRef'] = chordRef
+    diskJSON['nLoadingNodes'] = nLoadingNodes
+    diskJSON['tipGap'] = tipGap
+    diskJSON['sectionalRadiuses'] = [diskJSON['radius']]
+    diskJSON['initialBladeDirection'] = initialBladeDirection
+    diskJSON['sectionalPolars'] = []
+
+    for secId in range(0, 1):
+        polar = getc81Polars(c81FileName, diskJSON['alphas'], diskJSON['MachNumbers'], secId)
+        diskJSON['sectionalPolars'].append(polar)
+
+    return diskJSON
+
+
+########################################################################################################################
 def check_comment(comment_line, numelts):
     """
     This function is used when reading an XROTOR input file to make sure that what should be comments really are
-    :param comment_line: string
-    :param numelts: int
+
+    Attributes
+    ----------
+    comment_line: string
+    numelts: int
     """
     if not comment_line: # if the comment_line is empty.
         return
@@ -35,10 +230,13 @@ def check_comment(comment_line, numelts):
 ########################################################################################################################
 def check_num_values(values_list, numelts):
     """
-    This function is used to make sure we have the expecteed number of inputs in a given line
-    :param values: list
-    :param numelts:  int
-    :return:
+    This function is used to make sure we have the expected number of inputs in a given line
+
+    Attributes
+    ----------
+    values: list
+    numelts:  int
+    return: None, it raises an exception if the error condition is met.
     """
     # make sure that we have the expected number of values.
     if not (len(values_list) == numelts):
@@ -50,11 +248,19 @@ def readDFDCFile(dfdcFileName):
     """
     This functions read in the dfdc filename provided.
     it does rudimentary checks to make sure the file is truly in the dfdc format.
-    :param dfdcFileName: string
-    :return: a dictionary with all the required values. That dictionary will be used to create BETdisks section of the
+
+
+    Attributes
+    ----------
+    dfdcFileName: string
+    return: a dictionary with all the required values. That dictionary will be used to create BETdisks section of the
             Flow360 input JSON file.
 
-    dfdcInputDict has the following format:
+
+
+    Description of the DFDC input File
+    ----------------------------------
+    The dfdc input file has the following format:
     Case run definition:
     rho :air density (dimensional: kg/m3)
     vso aka cinf : speed of sound ( dimensional: m/s)
@@ -238,7 +444,7 @@ def readXROTORFile(xrotorFileName):
 
     Xrotor file description
     -----------------------
-    xrotor Input file has the following definitions:
+    The xrotor Input file has the following definitions:
     Case run definition:
     rho :air density (dimensional: kg/m3)
     vso aka cinf : speed of sound ( dimensional: m/s)
@@ -804,7 +1010,6 @@ def generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
     diskJSON['omega'] = xrotorDict['omegaDim'] * gridUnit / xrotorDict['vso']  # check this
     diskJSON['numberOfBlades'] = xrotorDict['nBlades']
     diskJSON['radius'] = xrotorDict['rad'] / gridUnit
-    diskJSON['omega'] = xrotorDict['omegaDim'] * gridUnit / xrotorDict['vso']
     diskJSON['twists'] = generateTwists(xrotorDict, gridUnit)
     diskJSON['chords'] = generateChords(xrotorDict, gridUnit)
     diskJSON['MachNumbers'] = generateMachs()
