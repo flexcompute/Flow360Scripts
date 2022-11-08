@@ -13,7 +13,7 @@ EXAMPLE useage:
 
 """
 
-import BETTranslatorInterface as interface
+import BETDisk.BETTranslatorInterface as interface
 import json
 
 
