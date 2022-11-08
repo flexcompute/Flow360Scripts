@@ -15,6 +15,7 @@ Example
 
 """
 import sys
+import BETDisk.BETTranslatorInterface as interface
 import json
 import os
 

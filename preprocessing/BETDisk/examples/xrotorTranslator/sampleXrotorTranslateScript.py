@@ -19,11 +19,11 @@ import json
 import os
 
 # this works:
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from BETTranslatorInterface import generateXrotorBETJSON
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# from BETTranslatorInterface import generateXrotorBETJSON
 
 # or this works
-from preprocessing.BETDisk.BETTranslatorInterface import generateXrotorBETJSON
+from BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
 
