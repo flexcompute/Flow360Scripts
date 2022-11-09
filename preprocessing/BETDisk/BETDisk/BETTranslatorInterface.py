@@ -9,13 +9,12 @@ EXAMPLE useage:
 EXAMPLE codes
 
 """
-# import sys
-# import os
+
 
 from math import *
-from numpy import arange, array, clip, exp, log
 import json
 
+from .utils import *
 
 ########################################################################################################################
 def getc81Polars(filePath, alphas, machs, rRstation):
@@ -301,118 +300,119 @@ def readDFDCFile(dfdcFileName):
 
 
     """
-    fid = open(dfdcFileName, 'r')
+    with open(dfdcFileName, 'r') as fid:
 
-    # read in lines 5->8 which contains the run case information
-    dfdcInputDict = {}
-    for i in range (4): fid.readline()  # we have 4 blank lines
+        # read in lines 5->8 which contains the run case information
+        dfdcInputDict = {}
+        for i in range (4): fid.readline()  # we have 4 blank lines
 
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 5)
-    values = fid.readline().split()
-    check_num_values(values, 4)
+        comment_line = fid.readline().upper().split()
+        check_comment(comment_line, 5)
+        values = fid.readline().split()
+        check_num_values(values, 4)
 
-    dfdcInputDict['vel'] = float(values[1])
-    dfdcInputDict['RPM'] = float(values[2])
+        dfdcInputDict['vel'] = float(values[1])
+        dfdcInputDict['RPM'] = float(values[2])
 
-    comment_line = fid.readline().upper().split()
-    check_comment(comment_line, 5)
-    values = fid.readline().split()
-    check_num_values(values, 4)
-    dfdcInputDict['rho'] = float(values[0])
-    dfdcInputDict['vso'] = float(values[1])
+        comment_line = fid.readline().upper().split()
+        check_comment(comment_line, 5)
+        values = fid.readline().split()
+        check_num_values(values, 4)
+        dfdcInputDict['rho'] = float(values[0])
+        dfdcInputDict['vso'] = float(values[1])
 
-    for i in range(7):
-        fid.readline()  # skip next 8 lines.
+        for i in range(7):
+            fid.readline()  # skip next 8 lines.
 
-    comment_line = fid.readline().upper().split()  # convert all to upper case
-    check_comment(comment_line, 2)  # 2 because line should have 2 components
-    values = fid.readline().split()
-    check_num_values(values, 1)  # we should have 1 value.
-    dfdcInputDict['nAeroSections'] = int(values[0])
-    # define the lists with the right number of elements
-    dfdcInputDict['rRstations'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['a0deg'] = [0] * dfdcInputDict['nAeroSections']  # WARNING, ao is in deg
-    dfdcInputDict['dclda'] = [0] * dfdcInputDict['nAeroSections']  # but dclda is in cl per radians
-    dfdcInputDict['clmax'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['clmin'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['dcldastall'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['dclstall'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['mcrit'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['cdmin'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['clcdmin'] = [0] * dfdcInputDict['nAeroSections']
-    dfdcInputDict['dcddcl2'] = [0] * dfdcInputDict['nAeroSections']
-
-    comment_line = fid.readline().upper().split()  # convert all to upper case
-    check_comment(comment_line, 2)  # 2 because line should have 2 components
-    for i in range(dfdcInputDict['nAeroSections']):  # iterate over all the sections
-
+        comment_line = fid.readline().upper().split()  # convert all to upper case
+        check_comment(comment_line, 2)  # 2 because line should have 2 components
         values = fid.readline().split()
         check_num_values(values, 1)  # we should have 1 value.
-        dfdcInputDict['rRstations'][i] = float(values[0])  # aka xisection
+        dfdcInputDict['nAeroSections'] = int(values[0])
+        # define the lists with the right number of elements
+        dfdcInputDict['rRstations'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['a0deg'] = [0] * dfdcInputDict['nAeroSections']  # WARNING, ao is in deg
+        dfdcInputDict['dclda'] = [0] * dfdcInputDict['nAeroSections']  # but dclda is in cl per radians
+        dfdcInputDict['clmax'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['clmin'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['dcldastall'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['dclstall'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['mcrit'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['cdmin'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['clcdmin'] = [0] * dfdcInputDict['nAeroSections']
+        dfdcInputDict['dcddcl2'] = [0] * dfdcInputDict['nAeroSections']
 
         comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 5)  # 5 because line should have 5 components
-        values = fid.readline().split()
-        check_num_values(values, 4)  # we should have 4 value.
-        dfdcInputDict['a0deg'][i] = float(values[0])  # WARNING, ao is in deg
-        dfdcInputDict['dclda'][i] = float(values[1])  # but dclda is in cl per radians
-        dfdcInputDict['clmax'][i] = float(values[2])
-        dfdcInputDict['clmin'][i] = float(values[3])
+        check_comment(comment_line, 2)  # 2 because line should have 2 components
+        for i in range(dfdcInputDict['nAeroSections']):  # iterate over all the sections
 
-        comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 5)  # 5 because line should have 5 components
-        values = fid.readline().split()
-        check_num_values(values, 4)  # we should have 4 value.
-        dfdcInputDict['dcldastall'][i] = float(values[0])
-        dfdcInputDict['dclstall'][i] = float(values[1])
-        dfdcInputDict['mcrit'][i] = float(values[3])
+            values = fid.readline().split()
+            check_num_values(values, 1)  # we should have 1 value.
+            dfdcInputDict['rRstations'][i] = float(values[0])  # aka xisection
 
-        comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 4)  # 4 because line should have 4 components
-        values = fid.readline().split()
-        check_num_values(values, 3)  # we should have 3 value.
-        dfdcInputDict['cdmin'][i] = float(values[0])
-        dfdcInputDict['clcdmin'][i] = float(values[1])
-        dfdcInputDict['dcddcl2'][i] = float(values[2])
+            comment_line = fid.readline().upper().split()  # convert all to upper case
+            check_comment(comment_line, 5)  # 5 because line should have 5 components
+            values = fid.readline().split()
+            check_num_values(values, 4)  # we should have 4 value.
+            dfdcInputDict['a0deg'][i] = float(values[0])  # WARNING, ao is in deg
+            dfdcInputDict['dclda'][i] = float(values[1])  # but dclda is in cl per radians
+            dfdcInputDict['clmax'][i] = float(values[2])
+            dfdcInputDict['clmin'][i] = float(values[3])
 
-        for i in range(2):
+            comment_line = fid.readline().upper().split()  # convert all to upper case
+            check_comment(comment_line, 5)  # 5 because line should have 5 components
+            values = fid.readline().split()
+            check_num_values(values, 4)  # we should have 4 value.
+            dfdcInputDict['dcldastall'][i] = float(values[0])
+            dfdcInputDict['dclstall'][i] = float(values[1])
+            dfdcInputDict['mcrit'][i] = float(values[3])
+
+            comment_line = fid.readline().upper().split()  # convert all to upper case
+            check_comment(comment_line, 4)  # 4 because line should have 4 components
+            values = fid.readline().split()
+            check_num_values(values, 3)  # we should have 3 value.
+            dfdcInputDict['cdmin'][i] = float(values[0])
+            dfdcInputDict['clcdmin'][i] = float(values[1])
+            dfdcInputDict['dcddcl2'][i] = float(values[2])
+
+            for i in range(2):
+                fid.readline()  # skip next 3 lines.
+
+        for i in range(3):
             fid.readline()  # skip next 3 lines.
 
-    for i in range(3):
-        fid.readline()  # skip next 3 lines.
-
-    # Now we are done with the various aero sections and we start looking at blade geometry definitions
-    comment_line = fid.readline().upper().split()  # convert all to upper case
-    check_comment(comment_line, 3)  # 3 because line should have 3 components
-    values = fid.readline().split()
-    check_num_values(values, 3)  # we should have 3 values.
-    dfdcInputDict['rad'] = float(values[0])
-    dfdcInputDict['nBlades'] = int(values[1])
-    comment_line = fid.readline().upper().split()  # convert all to upper case
-    check_comment(comment_line, 2)
-    values = fid.readline().split()
-    check_num_values(values, 1)
-    dfdcInputDict['nGeomStations'] = int(values[0])
-    # 2nd value on that  line is the number of blades
-    dfdcInputDict['rRGeom'] = [0] * dfdcInputDict['nGeomStations']
-    dfdcInputDict['cRGeom'] = [0] * dfdcInputDict['nGeomStations']
-    dfdcInputDict['beta0Deg'] = [0] * dfdcInputDict['nGeomStations']
-    comment_line = fid.readline().upper().split()  # convert all to upper case
-    check_comment(comment_line, 4)  # 4 because line should have 4 components
-    for i in range(dfdcInputDict['nGeomStations']):  # iterate over all the geometry stations
+        # Now we are done with the various aero sections and we start looking at blade geometry definitions
+        comment_line = fid.readline().upper().split()  # convert all to upper case
+        check_comment(comment_line, 3)  # 3 because line should have 3 components
         values = fid.readline().split()
         check_num_values(values, 3)  # we should have 3 values.
-        dfdcInputDict['rRGeom'][i] = float(values[0])  # not quite true b/c we need to multiply by radius but I need a place to store the r locations
-        dfdcInputDict['cRGeom'][i] = float(values[1])  # not quite true b/c we need to multiply by radius but I need a place to store the chord dimensions
-        dfdcInputDict['beta0Deg'][i] = float(values[2])  # twist values
-    if dfdcInputDict['rRGeom'][0] != 0:  # As per discussion in
-        # https://enreal.slack.com/archives/C01PFAJ76FL/p1643652853237749?thread_ts=1643413462.002919&cid=C01PFAJ76FL
-        # i need to ensure that the blade coordinates go all the way to r/R=0 and have a 0 chord  90deg twist at r/R=0
-        dfdcInputDict['rRGeom'].insert(0, 0.0)
-        dfdcInputDict['cRGeom'].insert(0, 0.0)
-        dfdcInputDict['beta0Deg'].insert(0, 90.0)
-        dfdcInputDict['nGeomStations'] += 1  # we have added one station.
+        dfdcInputDict['rad'] = float(values[0])
+        dfdcInputDict['nBlades'] = int(values[1])
+        comment_line = fid.readline().upper().split()  # convert all to upper case
+        check_comment(comment_line, 2)
+        values = fid.readline().split()
+        check_num_values(values, 1)
+        dfdcInputDict['nGeomStations'] = int(values[0])
+        # 2nd value on that  line is the number of blades
+        dfdcInputDict['rRGeom'] = [0] * dfdcInputDict['nGeomStations']
+        dfdcInputDict['cRGeom'] = [0] * dfdcInputDict['nGeomStations']
+        dfdcInputDict['beta0Deg'] = [0] * dfdcInputDict['nGeomStations']
+        comment_line = fid.readline().upper().split()  # convert all to upper case
+        check_comment(comment_line, 4)  # 4 because line should have 4 components
+        for i in range(dfdcInputDict['nGeomStations']):  # iterate over all the geometry stations
+            values = fid.readline().split()
+            check_num_values(values, 3)  # we should have 3 values.
+            dfdcInputDict['rRGeom'][i] = float(values[0])  # not quite true b/c we need to multiply by radius but I need a place to store the r locations
+            dfdcInputDict['cRGeom'][i] = float(values[1])  # not quite true b/c we need to multiply by radius but I need a place to store the chord dimensions
+            dfdcInputDict['beta0Deg'][i] = float(values[2])  # twist values
+        if dfdcInputDict['rRGeom'][0] != 0:  # As per discussion in
+            # https://enreal.slack.com/archives/C01PFAJ76FL/p1643652853237749?thread_ts=1643413462.002919&cid=C01PFAJ76FL
+            # i need to ensure that the blade coordinates go all the way to r/R=0 and have a 0 chord  90deg twist at r/R=0
+            dfdcInputDict['rRGeom'].insert(0, 0.0)
+            dfdcInputDict['cRGeom'].insert(0, 0.0)
+            dfdcInputDict['beta0Deg'].insert(0, 90.0)
+            dfdcInputDict['nGeomStations'] += 1  # we have added one station.
+
 
 
     # for i in range(dfdcInputDict['nGeomStations']):  # iterate over all the geometry stations to nondimensionalize by radius.
@@ -627,6 +627,8 @@ def readXROTORFile(xrotorFileName):
 
     return xrotorInputDict
 
+def floatRange(start, stop, step=1):
+    return [float(a) for a in range(start, stop, step)]
 
 ########################################################################################################################
 def generateTwists(xrotorDict, gridUnit):
@@ -715,7 +717,7 @@ def generateAlphas():
     # return list(arange(-180, -30, 10).astype(float)) + negAng + posAng + posAng2 + list(arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
 
     # option 2: return every degree
-    return list(arange(-180, 181, 1).astype(float))
+    return floatRange(-180, 181)
 
 
 ########################################################################################################################
@@ -863,9 +865,12 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
 
     # Generate CL from dCL/dAlpha and Prandtl-Glauert scaling
     A_zero = xrotorDict['a0deg'][nrRstation] * pi / 180
-    A0 = array([A_zero for i in range(len(alphas))])
     DCLDA = xrotorDict['dclda'][nrRstation]
-    CLA = DCLDA * PG * ((array(alphas) * pi / 180) - A0)
+
+    CLA = [0] * len(alphas)
+    for i, a in enumerate(alphas):
+        CLA[i] = DCLDA * PG * ((a * pi / 180) - A_zero)
+    CLA = array(CLA)    
 
     # Reduce CLmax to match the CL of onset of serious compressible drag
     CLMAX = xrotorDict['clmax'][nrRstation]
@@ -881,16 +886,16 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
 
     # CL limiter function (turns on after +-stall)
     DCL_STALL = xrotorDict['dclstall'][nrRstation]
-    ECMAX = exp(clip((CLA - CLMAX) / DCL_STALL, None, 200))
-    ECMIN = exp(clip((CLMIN - CLA) / DCL_STALL, None, 200))
-    CLLIM = DCL_STALL * log((1.0 + ECMAX) / (1.0 + ECMIN))
+    ECMAX = expList(clip((CLA - CLMAX) / DCL_STALL, -inf, 200))
+    ECMIN = expList(clip((CLA * (-1) + CLMIN) / DCL_STALL, -inf, 200))
+    CLLIM = logList((ECMAX + 1.0) / (ECMIN + 1.0)) * DCL_STALL
 
     # Subtract off a (nearly unity) fraction of the limited CL function
     # This sets the dCL/dAlpha in the stalled regions to 1-FSTALL of that
     # in the linear lift range
     DCLDA_STALL = xrotorDict['dcldastall'][nrRstation]
     FSTALL = DCLDA_STALL / DCLDA
-    CLIFT = CLA - (1.0 - FSTALL) * CLLIM
+    CLIFT = CLA - CLLIM * (1.0 - FSTALL)
 
     # In the basic linear lift range drag is a quadratic function of lift
     # CD = CD0 (constant) + quadratic with CL)
@@ -899,19 +904,19 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
 
     # Don't do any reynolds number corrections b/c we know it is minimal
     RCORR = 1
-    CDRAG = (CDMIN + DCDCL2 * (CLIFT - CLDMIN) ** 2) * RCORR
+    CDRAG = (((CLIFT - CLDMIN) ** 2) * DCDCL2 + CDMIN ) * RCORR
 
     # Post-stall drag added
     FSTALL = DCLDA_STALL / DCLDA
-    DCDX = (1.0 - FSTALL) * CLLIM / (PG * DCLDA)
-    DCD = 2.0 * DCDX ** 2
+    DCDX = CLLIM * (1.0 - FSTALL)/ (PG * DCLDA) 
+    DCD = (DCDX ** 2) * 2.0
 
     # Compressibility drag (accounts for drag rise above Mcrit with CL effects
     # CDC is a function of a scaling factor*(M-Mcrit(CL))**MEXP
     # DMDD is the Mach difference corresponding to CD rise of CDMDD at MCRIT
     DMDD = (CDMDD / CDMFACTOR) ** (1.0 / MEXP)
-    CRITMACH = MCRIT - CLMFACTOR * abs(CLIFT - CLDMIN) - DMDD
-    CDC = [0 for i in range(len(CRITMACH))]
+    CRITMACH = absList(CLIFT - CLDMIN) * CLMFACTOR * (-1) + MCRIT - DMDD
+    CDC = array([0 for i in range(len(CRITMACH))])
     for critMachIdx in range(len(CRITMACH)):
         if (MACH < CRITMACH[critMachIdx]):
             continue
@@ -922,7 +927,7 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
     # (or any function you choose)
     FAC = 1.0
     # --- Total drag terms
-    CDRAG = FAC * CDRAG + DCD + CDC
+    CDRAG = CDRAG * FAC + DCD + CDC
 
     # Now we modify the Clift and CDrag outside of the large alpha range to smooth out
     # the Cl and CD outside of the expected operating range

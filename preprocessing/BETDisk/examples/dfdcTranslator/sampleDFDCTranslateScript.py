@@ -19,8 +19,8 @@ import BETDisk.BETTranslatorInterface as interface
 import json
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from BETTranslatorInterface import generateXrotorBETJSON
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# from BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
 
@@ -83,7 +83,7 @@ def main():
         # DFDC and Xrotor come from the same family of CFD codes. They are both written by Mark Drela over at MIT.
         # we can use the same translator for both DFDC and Xrotor.
 
-        dfdcInputDicts[diskIdx] = generateXrotorBETJSON(dfdcFilePath, betdiskParams['axisOfRotation'],
+        dfdcInputDicts[diskIdx] = interface.generateXrotorBETJSON(dfdcFilePath, betdiskParams['axisOfRotation'],
                                     betdiskParams['centerOfRotation'],
                                     betdiskParams['rotationDirectionRule'],
                                     diskThickness=betdiskParams['thickness'],
