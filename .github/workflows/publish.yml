@@ -13,3 +13,30 @@ on:
         required: true
         type: string
         default: master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Install poetry
+      run: pipx install poetry
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'poetry'
+    - name: Install dependencies
+      run: poetry install
+    - name: Pump version number
+      run: poetry version ${{ inputs.version }}
+    - name: Setup pipy token
+      shell: bash
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        poetry config pypi-token.pypi "$PYPI_TOKEN"
+    - run: poetry build
+    - run: poetry publish
