@@ -1,4 +1,4 @@
-name: Publish To pipy
+name: Publish BETDISK to pipy
 
 
 on:
@@ -39,4 +39,7 @@ jobs:
       run: |
         poetry config pypi-token.pypi "$PYPI_TOKEN"
     - run: poetry build
+      working-directory: preprocessing/BETDisk
     - run: poetry publish
+      working-directory: preprocessing/BETDisk
+
