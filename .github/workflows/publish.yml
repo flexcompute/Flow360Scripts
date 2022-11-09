@@ -1,0 +1,15 @@
+name: Publish To pipy
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer without leading 'v',eg: 1.0.1, 1.1.1"
+        required: true
+        type: string
+      branch:
+        description: "Publish pacakge against specific branch"
+        required: true
+        type: string
+        default: master
