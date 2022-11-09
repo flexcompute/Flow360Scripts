@@ -30,8 +30,10 @@ jobs:
         cache: 'poetry'
     - name: Install dependencies
       run: poetry install
+      working-directory: preprocessing/BETDisk
     - name: Pump version number
       run: poetry version ${{ inputs.version }}
+      working-directory: preprocessing/BETDisk
     - name: Setup pipy token
       shell: bash
       env:
