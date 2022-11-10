@@ -2,14 +2,13 @@
 name = "flow360-betdisk"
 version = "0.1.1"
 description = ""
-authors = ["An Li <kidylee@gmail.com>"]
+authors = ["Flexcompute <support@flexcompute.com>"]
 packages= [
     { include = "BETDisk" },
 ]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "^1.23.4"
 
 [tool.poetry.dev-dependencies]
 
