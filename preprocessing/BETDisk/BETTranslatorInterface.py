@@ -11,203 +11,535 @@ EXAMPLE codes
 """
 # import sys
 # import os
-
+from scipy.interpolate import interp1d
 from math import *
 from numpy import arange, array, clip, exp, log
 import json
+from os import path
+
 
 
 ########################################################################################################################
-def getc81Polars(filePath, alphas, machs, rRstation):
-    """
-    Return the 2D Cl and CD polar expected by the Flow360 BET model.
-    b/c we have 4 Mach Values * 1 Reynolds value we need 4 different arrays per sectional polar as in:
-    since the order of brackets is Mach#, Rey#, Values then we need to return:
-    [[[array for MAch #1]],[[array for MAch #2]],[[array for MAch #3]],[[array for MAch #4]]]
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+def  readInXfoilPolar(polarFile):
+    '''
 
-
-    Attributes
+    Parameters
     ----------
-    xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    alphas: list of floats
-    machs: list of float
-    rRstation: station index.
-    return: list of dictionaries
-    """
+    polarFile: path to the xfoil polar file.
 
-    secpol = {}
+    Returns
+    -------
+    alphaList, machList, clList, cdList
+    '''
+    clAlphas = []
+    clValues = {}  # dictionary of list with the machs as keys
+    cdValues = {}  # dictionary of list with the machs as keys
+
+    xfoilFid = open(polarFile, 'r')
+    xfoilFid.readline()  # skip the header
+    for i in range (8): # skip the first 9 lines
+        line = xfoilFid.readline()
+
+    machNum = line.strip().split(' ')[4]
+    clValues[machNum] = []
+    cdValues[machNum] = []
+    for i in range (4): # skip the next 4 lines
+        line = xfoilFid.readline()
+    while True:
+        clAlphas.append(float(line.strip().split(' ')[0]))
+        clValues[machNum].append(float(line.strip().split(' ')[3]))
+        cdValues[machNum].append(float(line.strip().split(' ')[6]))
+        line = xfoilFid.readline()
+        if len(line) == 0:#If we did all the alphas and we are done
+            break
+    clAlphas, clMachNums, clValues, cdValues=blendPolarstoFlatplate(clAlphas, [machNum], clValues, cdValues)
+
+    #Now we interpolate the polar data to a constant set of alphas to make sure we have all the smae alphas across all mach and section
+    # 10 deg steps from -180 ->-30 and from 30 to 180. 1 deg steps from -29 to 29
+    negAng = list(arange(-30, -5, 1).astype(float))
+    posAng = list(arange(-5, 10, 1).astype(float))
+    posAng2 = list(arange(10, 29, 1).astype(float))
+    alphas = list(arange(-180, -30, 10).astype(float)) + negAng + posAng + posAng2 + list(arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
+
+    clInterp=interp1d(clAlphas,clValues[clMachNums[0]],kind='linear') # method should be linear to make sure we still have 0 at the +- 180 values
+    cdInterp = interp1d(clAlphas, cdValues[clMachNums[0]],kind='linear')  # method should be linear to make sure we still have 0 at the +- 180 values
+    cls = [0 for i in range(len(alphas))]
+    cds = [0 for i in range(len(alphas))]
+    for i,alpha in enumerate(alphas): # interpolate the cl and cd over the new set of alphas
+        cls[i]=float(clInterp(alpha))
+        cds[i] =float(cdInterp(alpha))
+
+    return alphas, clMachNums[0], cls, cds
+########################################################################################################################
+def blendPolarstoFlatplate(clAlphas, clMachNums, clValues, cdValues):
+    '''
+    This function blends a given arbitrary set of CL and CD polars that are missing values to cover the whole -180 to 180
+    range of angles. The resulting polars will have the missing values be replaced by the flat plate CL and CD.
+    Parameters
+    ----------
+    clAlphas: list of alpha angles
+    clMachNums: list of mach numbers
+    clValues: dict with dimensions nMach*nAlphas
+    cdValues: dict with dimensions nMach*nAlphas
+
+    Returns
+    -------
+    clAlphas, clMachNums, clValues, cdValues with polars completed to +- 180
+    '''
+
+    polarAlphaStepBlend=10 # add a polar point every N alpha
+
+    alphaMin = clAlphas[0]
+    alphaMax = clAlphas[-1]
+    if alphaMin < -180:
+        raise ValueError('ERROR: alphaMin is smaller then -180: %f',alphaMin)
+    if alphaMax > 180:
+        raise ValueError('ERROR: alphaMax is greater then 180: %f',alphaMin)
+
+    blendWindow = 0.5  # 0.5 radians
+
+    # create a point every 10 deg, how many points do we need.
+    numMissingAlphasMin = round(( alphaMin + 180)/polarAlphaStepBlend)
+    numMissingAlphasMax = round((180 - alphaMax) /polarAlphaStepBlend)
+
+    for i in range (numMissingAlphasMin - 1): # add alphas at beginning of clAlphas list
+        clAlphas.insert(0,clAlphas[0]-polarAlphaStepBlend)
+        print (clAlphas[0])
+        a = clAlphas[0] * pi / 180  # smallest alpha in radians
+        for i, mach in enumerate (clMachNums):
+            blendVal = blendFuncValue(blendWindow, a, alphaMin * pi / 180, 'belowCLmin')  # we are on the alphaCLmin side going up in CL
+            # this follows the flat plate lift and drag equations times the blend val coefficient
+
+            cLift = clValues[mach][0] * blendVal + (1 - blendVal) * cos(a) * 2 * pi * sin(a) / sqrt(1 + (2 * pi * sin(a)) ** 2)
+            cd = cdValues[mach][0] * blendVal + (1 - blendVal) * sin(a) * (2 * pi * sin(a)) ** 3 / sqrt(1 + (2 * pi * sin(a)) ** 6) + 0.05
+            mach = str(mach)
+            clValues[mach].insert(0,cLift) # add a new cl value at the beginning
+            cdValues[mach].insert(0, cd)  # add a new cl value at the beginning
+
+
+    for i in range (numMissingAlphasMax - 1): # add alphas at end of clAlphas list
+        clAlphas.append(clAlphas[-1]+polarAlphaStepBlend)
+        a = clAlphas[-1] * pi / 180  # smallest alpha in radians
+        for i, mach in enumerate(clMachNums):
+            blendVal = blendFuncValue(blendWindow, a, alphaMax* pi / 180,'aboveCLmax')  # we are on the alphaCLmin side going up in CL
+            # this follows the flat plate lift and drag equations times the blend val coefficient
+
+            cLift = clValues[mach][-1] * blendVal + (1 - blendVal) * cos(a) * 2 * pi * sin(a) / sqrt(
+                1 + (2 * pi * sin(a)) ** 2)
+            cd = cdValues[mach][-1] * blendVal + (1 - blendVal) * sin(a) * (2 * pi * sin(a)) ** 3 / sqrt(
+                1 + (2 * pi * sin(a)) ** 6) + 0.05
+            mach = str(mach)
+            clValues[mach].append(cLift)  # add a new cl value at the beginning
+            cdValues[mach].append(cd)  # add a new cl value at the beginning
+
+    clAlphas.insert(0,-180) # make sure that the last value in the list is 180
+    clAlphas.append(180)  # make sure that the last value in the list is 180
+    for i, mach in enumerate(clMachNums):
+        clValues[mach].insert(0, 0)  # make sure Cl=0 at alpha -180
+        cdValues[mach].insert(0, 0.05)  # Cd=0.05 is flat plate Cd at 180
+        clValues[mach].append(0)  # make sure Cl=0 at alpha -180
+        cdValues[mach].append(0.05)  # Cd=0.05 is flat plate Cd at 180
+
+    return clAlphas, clMachNums, clValues, cdValues
+
+###############################################################################################################
+def readInC81Polarc81Format(polarFile):
+    '''
+    Read in the c81 format polar file
+    This function checks that the list of Alphas is consistent across CL and CD and that the number of Machs is also consistent across Cl and CD.
+    Parameters
+    ----------
+    polarFile
+
+    Returns
+    -------
+    4 lists of floats: clAlphas, clMachNums, clValues, cdValues
+    '''
+    clAlphas=[]
+    cdAlphas = []
+    clValues = {}#dictionary of list with the machs as keys
+    cdValues={}#dictionary of list with the machs as keys
+
+
+    c81fid=open(polarFile,'r')
+    c81fid.readline()# skip the header
+    line=c81fid.readline()
+    clMachNums=line.strip().split(' ')
+    clMachNums = [float(i) for i in clMachNums if i] # remove empty items and trailing \n in clMachNums
+    for mach in clMachNums:
+        clValues[mach]=[]
+    line=c81fid.readline()
+    while True:
+        # c81 format is as per this document https://cibinjoseph.github.io/C81-Interface/page/index.html
+        # first 7 chars in string is A0A then 7 chars per cl value
+        if line[:7]=='       ': #If we did all the alphas and now that line starts with a bunch of spaces.
+            break
+        clAlphas.append(float(line[:7]))
+
+        for i,mach in enumerate(clMachNums):
+            indexBeg=i*7+7
+            indexEnd = (i+1) * 7 + 7
+            clValues[mach].append(float(line[indexBeg:indexEnd]))
+        line = c81fid.readline()
+
+    # Now do the CDs
+    cdMachNums = line.strip().split(' ')
+    # we already read the mach numbers line in the while loop above. so just split it.
+    cdMachNums = [float(i) for i in cdMachNums if i]  # remove empty items and trailing \n in clMachNums
+    if clMachNums != cdMachNums: # if we have different lists of  machs
+        raise ValueError('ERROR: in file %s, The machs in the Cl polar do not match the machs in the CD polar, we have %i Cl mach values and %i CD mach values:'%(polarFile,clMachNums,cdMachNums))
+
+    for mach in cdMachNums:
+        cdValues[mach] = []
+    line = c81fid.readline()
+    while True:
+        # c81 format is as per this document https://cibinjoseph.github.io/C81-Interface/page/index.html
+        # first 7 chars in string is A0A then 7 chars per cl value
+        if line[:7] == '       ':  # If we did all the alphas and now that line starts with a bunch of spaces.
+            break
+        cdAlphas.append(float(line[:7]))
+
+        for i, mach in enumerate(cdMachNums):
+            indexBeg = i * 7 + 7
+            indexEnd = (i + 1) * 7 + 7
+            cdValues[mach].append(float(line[indexBeg:indexEnd]))
+        line = c81fid.readline()
+
+
+    if clAlphas != cdAlphas:  # if we have different  lists of alphas
+        raise ValueError(
+            'ERROR: in file %s, The alphas in the Cl polar do not match the alphas in the CD polar. We have %i Cls and %i Cds' % (
+            polarFile, clAlphas, cdAlphas))
+
+    # We also have the moment informatiomn in a c81 file but we ignore that for our purposes.
+
+    return clAlphas, clMachNums, clValues, cdValues
+
+###############################################################################################################
+def readInC81Polarcsv(polarFile):
+    '''
+    # read in the c81 format polar file as a csv file
+    # the script checks that the list of Alphas is consistent across CL and CD and that the number of Machs is also consistent across Cl and CD.
+    Parameters
+    ----------
+    polarFile
+
+    Returns
+    -------
+     4 lists of floats: clAlphas, clMachNums, clValues, cdValues
+    '''
+
+    clAlphas=[]
+    cdAlphas = []
+    clValues = {}#dictionary of list with the machs as keys
+    cdValues={}#dictionary of list with the machs as keys
+
+
+    c81fid=open(polarFile,'r')
+    c81fid.readline()# skip the header
+    line=c81fid.readline()
+    clMachNums=line.split(',')
+    clMachNums = [float(i.strip()) for i in clMachNums if i] # remove empty items and trailing \n in clMachNums
+    #numClMachs=len(clMachNums) #number of machs we have
+    for mach in clMachNums:
+        clValues[mach]=[]
+    line=c81fid.readline()
+    while True:
+        values=line.split(',')
+        if values[0]=='': #If we did all the alphas
+            break
+        clAlphas.append(float(values[0]))
+        for i,mach in enumerate(clMachNums):
+            clValues[mach].append(float(values[i+1].strip()))
+        line = c81fid.readline()
+
+    # Now do the CDs
+    cdMachNums = line.split(',')# we already read the mach numbers line in the while loop above. so just split it.
+    cdMachNums = [float(i.strip()) for i in cdMachNums if i]  # remove empty items and trailing \n in clMachNums
+    if clMachNums != cdMachNums: # if we have different lists of  machs
+        raise ValueError(
+            'ERROR: in file %s, The machs in the Cl polar do not match the machs in the CD polar, we have %i Cl mach values and %i CD mach values:' % (
+            polarFile, clMachNums, cdMachNums))
+
+    for mach in cdMachNums:
+        cdValues[mach] = []
+    line = c81fid.readline()
+    while True:
+        values = line.split(',')
+        if values[0] == '':  # If we did all the alphas
+            break
+        cdAlphas.append(float(values[0]))
+        for i, mach in enumerate(cdMachNums):
+            cdValues[mach].append(float(values[i + 1].strip()))
+        line = c81fid.readline()
+
+
+    if clAlphas != cdAlphas:  # if we have different  lists of alphas
+        raise ValueError(
+            'ERROR: in file %s, The alphas in the Cl polar do not match the alphas in the CD polar. We have %i Cls and %i Cds' % (
+                polarFile, len(clAlphas), len(cdAlphas)))
+
+    # We also have the moment information in a c81 file but we ignore that for our purposes.
+    if clAlphas[0] != -180 and clAlphas[-1] != 180:  # if we don't have polars for the full circle of alpha angles.
+        blendPolarstoFlatplate(clAlphas, clMachNums, clValues, cdValues)
+
+    return clAlphas, clMachNums, clValues, cdValues
+
+###############################################################################################################
+def readInXfoilData (betDisk, xfoilPolarfiles):
+    '''
+    This function reads in the Xfoil polars and assigns the resulting values correctly into the BET disk dictionary
+    Parameters
+    ----------
+    betDisk - Dictionary of values needed for the BET disk implementation
+    xfoilPolarfiles - list of xfoil polar files
+
+    Returns
+    -------
+    betDisk - same dictionary as was passed to function but with all the polar information added.
+    '''
+    if len(xfoilPolarfiles) != len(betDisk['sectionalRadiuses']):
+        raise ValueError('Error: There is an error in the number of polar files (%i) vs the number of sectional Radiuses (%i)'%(len(xfoilPolarfiles) , len(betDisk['sectionalRadiuses'])))
+
+    betDisk['sectionalPolars'] = []
+    betDisk['MachNumbers']=[]
+    secpol = {} # temporary dict to store all the section polars before assigning it to the right location.
     secpol['liftCoeffs'] = []
     secpol['dragCoeffs'] = []
-    for machNum in machs:
-        cl = [0,1,0]
-        cd = [0.01,0.005,0.01]
+    for secIdx, section in enumerate(betDisk['sectionalRadiuses']):
+        polarFiles=xfoilPolarfiles[secIdx]
+        for polarFile in polarFiles:
+            print ('doing sectionalRadius %f with polar file %s'%(section,polarFile) )
+            if not path.isfile(polarFile):
+                raise ValueError('Error: xfoil format polar file %s does not exist.' % polarFile)
+            alphaList, MachNums, clValues, cdValues = readInXfoilPolar(polarFile) # read in xfoil data and use flat plate values outside of given polar range
+            betDisk['MachNumbers'].append(MachNums)
+            secpol['liftCoeffs'].append([clValues)
+            secpol['dragCoeffs'].append([cdList)
 
-        secpol['liftCoeffs'].append([cl])
-        secpol['dragCoeffs'].append([cd])
-    return secpol
+    betDisk['alphas'] = alphaList
 
+    XXXXXXXXXXXXXXXX
+    betDisk['sectionalPolars'].append(secpol)
+
+        # if  'MachNumbers' in betDisk.keys() and betDisk['MachNumbers'] != machList:
+        #     raise ValueError('ERROR: The mach Numbers do not match across the various sectional radi polar xfoil files. All the sectional radi need to have the same mach Numbers across all xfoil polar files')
+        # if 'alphas' in betDisk.keys() and betDisk['alphas'] != alphaList:
+        #     raise ValueError( 'ERROR: The alphas do not match across the various sectional radi polar xfoil files. All the sectional radi need to have the same alphas across all xfoil polar files')
+        #
+        # betDisk['MachNumbers']=machList
+        # betDisk['alphas']=alphaList
+        #
+        #
+        # # since the order of brackets is Mach#, Rey#, Values then we need to return:
+        # # [[[array for MAch #1]],[[array for MAch #2]],[[array for MAch #3]],[[array for MAch #4]],......]
+        #
+        # secpol = {}
+        # secpol['liftCoeffs'] = []
+        # secpol['dragCoeffs'] = []
+        # for mach in betDisk['MachNumbers']:
+        #     secpol['liftCoeffs'].append([clList[mach]])
+        #     secpol['dragCoeffs'].append([cdList[mach]])
+        # betDisk['sectionalPolars'].append(secpol)
+        # if betDisk["alphas"][0] != -180 and betDisk["alphas"][-1] !=180: # if we don't have polars for the full circle of alpha angles.
+        #     blendPolarstoFlatplate(betDisk)
+
+    return betDisk
+
+
+###############################################################################################################
+def readInC81Polars (betDisk, c81Polarfiles):
+    '''
+    This function reads in the C81 polars and assigns the resulting values correctly into the BET disk dictionary
+    Parameters
+    ----------
+    betDisk - Dictionary of values needed for the BET disk implementation
+    c81Polarfiles - list of C81 polar files
+
+    Returns
+    -------
+    betDisk - same dictionary as was passed to function but with all the polar information added.
+    '''
+    if len(c81Polarfiles) != len(betDisk['sectionalRadiuses']):
+        raise ValueError('Error: There is an error in the number of polar files (%i) vs the number of sectional Radiuses (%i)'%(len(c81Polarfiles) , len(betDisk['sectionalRadiuses'])))
+
+    betDisk['sectionalPolars'] = []
+    for secIdx, section in enumerate(betDisk['sectionalRadiuses']):
+        polarFile=c81Polarfiles[secIdx][0].strip()# Take the first element of that list. Remove all spaces.
+        print ('doing sectionalRadius %f with polar file %s'%(section,polarFile) )
+        if not path.isfile(polarFile):
+            raise ValueError('Error: c81 format polar file %s does not exist.' % polarFile)
+
+        if 'csv' in polarFile: # if we are dealing with a csv file
+            alphaList,machList,clList,cdList=readInC81Polarcsv(polarFile)
+
+        else:
+            # we are dealing with a genuine c81 file, then I need to handle it by splitting the list into certain sizes
+            alphaList,machList,clList,cdList=readInC81Polarc81Format(polarFile)
+        if  'MachNumbers' in betDisk.keys() and betDisk['MachNumbers'] != machList:
+            raise ValueError('ERROR: The mach Numbers do not match across the various sectional radi polar c81 files. All the sectional radi need to have the same mach Numbers across all c81 polar files')
+        if 'alphas' in betDisk.keys() and betDisk['alphas'] != alphaList:
+            raise ValueError( 'ERROR: The alphas do not match across the various sectional radi polar c81 files. All the sectional radi need to have the same alphas across all c81 polar files')
+
+        betDisk['MachNumbers']=machList
+        betDisk['alphas']=alphaList
+
+
+        # since the order of brackets is Mach#, Rey#, Values then we need to return:
+        # [[[array for MAch #1]],[[array for MAch #2]],[[array for MAch #3]],[[array for MAch #4]],......]
+
+        secpol = {}
+        secpol['liftCoeffs'] = []
+        secpol['dragCoeffs'] = []
+        for mach in betDisk['MachNumbers']:
+            secpol['liftCoeffs'].append([clList[mach]])
+            secpol['dragCoeffs'].append([cdList[mach]])
+        betDisk['sectionalPolars'].append(secpol)
+
+    return betDisk
 
 ########################################################################################################################
-def generateXfoilBETJSON(c81FileName, axisOfRotation, centerOfRotation,
-                    rotationDirectionRule, **kwargs):
+def generateXfoilBETJSON(geometryFileName,betDisk):
 
-    # --------------THIS IS A TEMPORARY HACK TO GET SOMETHING WORKING TO WEBUI TEAM-----------------------
     """
-    This function takes in xfoil input files along with the remaining required information and creates a flow360 BET input dictionary
-
+    This function takes in a geometry input files along with the remaining required information and creates a flow360 BET input dictionary
+    This geometry input file contains the list of C81 files required to get the polars along with the geometry twist and chord definition
     Attributes
     ----------
-    xrotorFileName: string, filepath to the C81 files we want to translate into a BET disk
-    axisOfRotation: [x,y,z] coordinates of the rotation vector
-    centerOfRotation: [x,y,z] coordinates of the rotation vector
-    rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
+    geometryFileName: string, filepath to the geometry files we want to translate into a BET disk
+    betDisk: dictionary of the required betdisk data that we can't get form the geometry file.
     return: dictionary that we should append to the Flow360.json file we want to run with.
     """
-    diskThickness = kwargs['diskThickness']
-    gridUnit = kwargs['gridUnit']
-    chordRef = kwargs.pop('chordRef', 1.0)
-    nLoadingNodes = kwargs.pop('nLoadingNodes', 20)
-    tipGap = kwargs.pop('tipGap', 'inf')
-    initialBladeDirection = kwargs.pop('initialBladeDirection', [1, 0, 0])
 
-    if rotationDirectionRule not in ['rightHand', 'leftHand']:
-        raise ValueError(f'Exiting. Invalid rotationDirectionRule of:{rotationDirectionRule}')
-    if len(axisOfRotation) != 3:
+    if betDisk['rotationDirectionRule'] not in ['rightHand', 'leftHand']:
+        raise ValueError('Exiting. Invalid rotationDirectionRule: %s'% {betDisk['rotationDirectionRule']})
+    if len(betDisk['axisOfRotation']) != 3:
         raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
-    if len(centerOfRotation) != 3:
+    if len(betDisk['centerOfRotation']) != 3:
         raise ValueError('centerOfRotation must be a list of size 3. Exiting')
 
-    # xrotorDict = readXROTORFile(xrotorFileName)
+    twistVec, chordVec, sectionalRadiuses, xfoilPolarfileList = parseGeometryfile(geometryFileName)
+    betDisk['radius'] = sectionalRadiuses[-1]
+    betDisk['sectionalRadiuses'] = sectionalRadiuses
+    betDisk['twists'] = twistVec
+    betDisk['chords'] = chordVec
+    betDisk = readInXfoilData(betDisk, xfoilPolarfileList)  # add the mach values along with the polars from the xfoil files.
+    betDisk['ReynoldsNumbers'] = generateReys()
 
-
-    diskJSON = {'axisOfRotation': axisOfRotation,
-                'centerOfRotation': centerOfRotation,
-                'rotationDirectionRule': rotationDirectionRule}
-
-    # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
-
-
-        # Values are hard coded as a temporaru setupfor WEBUI creation
-    diskJSON['omega'] = 0.01
-    diskJSON['numberOfBlades'] = 2
-    diskJSON['radius'] = 150
-    diskJSON['twists'] =[
-                {
-                    "radius": 0.0,
-                    "twist": 90.0
-                },
-                {
-                    "radius": 150,
-                    "twist": 0
-                }]
-    diskJSON['chords'] = [
-                {
-                    "radius": 0.0,
-                    "chord": 0.0
-                },
-                {
-                    "radius": 150,
-                    "chord": 14
-                }]
-    diskJSON['MachNumbers'] = generateMachs()
-    diskJSON['alphas'] = [-180.0, 0, 180.0]
-    diskJSON['ReynoldsNumbers'] = [1]
-    diskJSON['thickness'] = diskThickness
-    diskJSON['chordRef'] = chordRef
-    diskJSON['nLoadingNodes'] = nLoadingNodes
-    diskJSON['tipGap'] = tipGap
-    diskJSON['sectionalRadiuses'] = [diskJSON['radius']]
-    diskJSON['initialBladeDirection'] = initialBladeDirection
-    diskJSON['sectionalPolars'] = []
-
-    for secId in range(0, 1):
-        polar = getc81Polars(c81FileName, diskJSON['alphas'], diskJSON['MachNumbers'], secId)
-        diskJSON['sectionalPolars'].append(polar)
-
-    return diskJSON
-
+    return betDisk
 ########################################################################################################################
-def generateC81BETJSON(c81FileName, axisOfRotation, centerOfRotation,
-                    rotationDirectionRule, **kwargs):
+def parseGeometryfile(geometryFileName):
+    '''
+    This function reads in the geometry file. This file is a csv containing the filenames of the polar definition files along with the twist and chord definitions.
+    it assumes the following format:
 
-    # --------------THIS IS A TEMPORARY HACK TO GET SOMETHING WORKING TO WEBUI TEAM-----------------------
+    #Radial station Sectional Radius (grid Units), polar definition file.
+    If it is a C81 polar format, all the mach numbers are in the same file, hence 1 file per section.
+    If it is a Xfoil polar format, we need multiple file per section if we want to cover multiple machs
+    number,filenameM1.csv,filenameM2.csv...
+    number2,filename2M1.csv,filename2M2.csv,...
+    number3,filename3M1.csv,filename3M2.csv,...
+    number4,filename4M1.csv,filename4M2.csv,...
+    .....
+    #Radial Station (grid units),Chord(gridUnits),"twist(deg)from rotation plane (0 is parallel to rotation plane,  i.e. perpendicular to thrust)"
+    number,number,number
+    number,number,number
+    number,number,number
+    .....
 
-    """
-    This function takes in c81 input files along with the remaining required information and creates a flow360 BET input dictionary
-
-    Attributes
+    Parameters
     ----------
-    xrotorFileName: string, filepath to the C81 files we want to translate into a BET disk
-    axisOfRotation: [x,y,z] coordinates of the rotation vector
-    centerOfRotation: [x,y,z] coordinates of the rotation vector
-    rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    return: dictionary that we should append to the Flow360.json file we want to run with.
-    """
-    diskThickness = kwargs['diskThickness']
-    gridUnit = kwargs['gridUnit']
-    chordRef = kwargs.pop('chordRef', 1.0)
-    nLoadingNodes = kwargs.pop('nLoadingNodes', 20)
-    tipGap = kwargs.pop('tipGap', 'inf')
-    initialBladeDirection = kwargs.pop('initialBladeDirection', [1, 0, 0])
+    geometryFileName - path to the geometryFile. This file is a csv containing the filenames of the polar definition files along with the twist and chord definitions.
 
-    if rotationDirectionRule not in ['rightHand', 'leftHand']:
-        raise ValueError(f'Exiting. Invalid rotationDirectionRule of:{rotationDirectionRule}')
-    if len(axisOfRotation) != 3:
-        raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
-    if len(centerOfRotation) != 3:
-        raise ValueError('centerOfRotation must be a list of size 3. Exiting')
+    Returns
+    -------
+    4 lists: twistVec, chordVec, sectionalRadiuses, c81Polarfiles
+    '''
+#    read in the geometry file name and return its values
+    fid=open(geometryFileName)
+    line=fid.readline()
+    if '#' not in line:
+        raise ValueError("ERROR: first character of first line of geometry file %s should be the # character to denote a header line"%(geometryFileName))
 
-    # xrotorDict = readXROTORFile(xrotorFileName)
+    sectionalRadiuses=[]
+    polarFiles=[]
+    radiusStation=[]
+    chord=[]
+    twist=[]
+    line=fid.readline().strip('\n')
+    while True:
+        if '#' in line: #If we have reached the end of sectional radiuses then move on to the twists and chords
+            break
+        try:
+            splitLine=line.split(',')
+            sectionalRadiuses.append(float(splitLine[0]))
+            splitLine.pop(0)
+            polarFiles.append(splitLine)
+            line = fid.readline().strip('\n') # read next line.
+        except:
+            raise ValueError('ERROR: exception thrown when parsing line %s from geometry file %s'%(line, geometryFileName))
+
+    while True:
+        try:
+            line = fid.readline().strip('\n')  # read in the first line of twist and chord definition
+            if not line:#if we have reached the end of the file.
+                break
+            radiusStation.append(float(line.split(',')[0]))
+            chord.append(float(line.split(',')[1]))
+            twist.append(float(line.split(',')[2]))
+        except:
+            raise ValueError('ERROR: exception thrown when parsing line %s from geometry file %s' % (line, geometryFileName))
 
 
-    diskJSON = {'axisOfRotation': axisOfRotation,
-                'centerOfRotation': centerOfRotation,
-                'rotationDirectionRule': rotationDirectionRule}
-
-    # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
-
-
-        # Values are hard coded as a temporaru setupfor WEBUI creation
-    diskJSON['omega'] = 0.01
-    diskJSON['numberOfBlades'] = 2
-    diskJSON['radius'] = 1
-    diskJSON['twists'] =[
-                {
-                    "radius": 0.0,
-                    "twist": 90.0
-                },
-                {
-                    "radius": 1,
-                    "twist": 0
-                }]
-    diskJSON['chords'] = [
-                {
+    #intialize chord and twist with 0,0 value at centerline
+    chordVec=[{
                     "radius": 0.0,
                     "chord": 0.0
-                },
-                {
-                    "radius": 1,
-                    "chord": 1
                 }]
-    diskJSON['MachNumbers'] = generateMachs()
-    diskJSON['alphas'] = [-180.0, 0, 180.0]
-    diskJSON['ReynoldsNumbers'] = [1]
-    diskJSON['thickness'] = diskThickness
-    diskJSON['chordRef'] = chordRef
-    diskJSON['nLoadingNodes'] = nLoadingNodes
-    diskJSON['tipGap'] = tipGap
-    diskJSON['sectionalRadiuses'] = [diskJSON['radius']]
-    diskJSON['initialBladeDirection'] = initialBladeDirection
-    diskJSON['sectionalPolars'] = []
+    twistVec=[{
+                    "radius": 0.0,
+                    "twist": 0.0
+                }]
+    for i in range (len(radiusStation)):
+        twistVec.append({'radius': radiusStation[i], 'twist': twist[i]})
+        chordVec.append({'radius': radiusStation[i], 'chord': chord[i]})
 
-    for secId in range(0, 1):
-        polar = getc81Polars(c81FileName, diskJSON['alphas'], diskJSON['MachNumbers'], secId)
-        diskJSON['sectionalPolars'].append(polar)
+    fid.close()
 
-    return diskJSON
+    return twistVec, chordVec, sectionalRadiuses, polarFiles
 
+################################################################################################################
+def generateC81BETJSON(geometryFileName,betDisk):
+
+    """
+    This function takes in a geometry input files along with the remaining required information and creates a flow360 BET input dictionary
+    This geometry input file contains the list of C81 files required to get the polars along with the geometry twist and chord definition
+    Attributes
+    ----------
+    geometryFileName: string, filepath to the geometry files we want to translate into a BET disk
+    betDisk: dictionary of the required betdisk data that we can't get form the geometry file.
+    return: dictionary that we should append to the Flow360.json file we want to run with.
+    """
+
+    if betDisk['rotationDirectionRule'] not in ['rightHand', 'leftHand']:
+        raise ValueError('Exiting. Invalid rotationDirectionRule: %s'% {betDisk['rotationDirectionRule']})
+    if len(betDisk['axisOfRotation']) != 3:
+        raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
+    if len(betDisk['centerOfRotation']) != 3:
+        raise ValueError('centerOfRotation must be a list of size 3. Exiting')
+
+    twistVec, chordVec, sectionalRadiuses, c81PolarfileList = parseGeometryfile(geometryFileName)
+    betDisk['radius'] = sectionalRadiuses[-1]
+    betDisk['sectionalRadiuses'] = sectionalRadiuses
+    betDisk['twists'] = twistVec
+    betDisk['chords'] = chordVec
+    betDisk = readInC81Polars(betDisk, c81PolarfileList)  # add the mach values along with the polars from the c81 files.
+    betDisk['ReynoldsNumbers'] = generateReys()
+
+    return betDisk
 
 ########################################################################################################################
 def check_comment(comment_line, numelts):
@@ -499,7 +831,7 @@ def readXROTORFile(xrotorFileName):
             return readDFDCFile(xrotorFileName)
 
         elif topLine.find('XROTOR') == -1:
-            raise ValueError(f'This input Xrotor file does not seem to be a valid Xrotor input file')
+            raise ValueError('This input Xrotor file does not seem to be a valid Xrotor input file')
 
         # read in lines 2->8 which contains the run case information
         xrotorInputDict = {}
@@ -785,7 +1117,7 @@ def blendFuncValue(blendWindow, alpha, alphaMinMax, alphaRange):
 
 
 ########################################################################################################################
-def blend2flatPlate(CLIFT, CDRAG, alphas, alphaMinIdx, alphaMaxIdx):
+def xrotorBlend2flatPlate(CLIFT, CDRAG, alphas, alphaMinIdx, alphaMaxIdx):
     """
      Blend the Clift and Cdrag values outside of the normal working range of alphas to the flat plate CL and CD values.
 
@@ -931,7 +1263,7 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
     alphaMinIdx, alphaMaxIdx = findClMinMaxAlphas(CLIFT, CLMIN, CLMAX)
     # Blend the CLIFt and CDRAG values from above with the flat plate formulation to
     # be used outside of the alphaCLmin to alphaCLMax window
-    CLIFT, CDRAG = blend2flatPlate(CLIFT, CDRAG, alphas, alphaMinIdx, alphaMaxIdx)
+    CLIFT, CDRAG = xrotorBlend2flatPlate(CLIFT, CDRAG, alphas, alphaMinIdx, alphaMaxIdx)
 
     return list(CLIFT), list(CDRAG)
 
@@ -965,8 +1297,7 @@ def getPolar(xrotorDict, alphas, machs, rRstation):
 
 
 ########################################################################################################################
-def generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
-                    rotationDirectionRule, **kwargs):
+def generateXrotorBETJSON(xrotorFileName, betDisk):
     """
 
     This file takes in an Xrotor or DFDC input file and translates it into a flow360 BET input dictionary
@@ -977,57 +1308,53 @@ def generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
     Attributes
     ----------
     xrotorFileName: string, filepath to the Xrotor/DFDC file we want to translate into a BET disk
-    axisOfRotation: [x,y,z] coordinates of the rotation vector
-    centerOfRotation: [x,y,z] coordinates of the rotation vector
-    rotationDirectionRule: string, either "rightHand" or "leftHand". See https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    kwargs: various other arguments see https://docs.flexcompute.com/projects/flow360/en/latest/capabilities/bladeElementTheory.html#bet-input
-    return: dictionary that we should append to the Flow360.json file we want to run with.
+    betDisk: This is a dict that already contains some betDisk definition information. We will add to that same dict
+    before returning it.
+        It should contain the following key value pairs:
+        ['axisOfRotation']: [a,b,c],
+        ['centerOfRotation']: [x,y,z],
+        ['rotationDirectionRule']: "rightHand" or "leftHand",
+        ['thickness']: value,
+        ['gridUnit']:value,
+        ['chordRef']:value,
+        ['nLoadingNodes']
+
+    Returns
+    -------
+    returns: Dictionary that we should append to the Flow360.json file we want to run with.
     """
 
-    diskThickness = kwargs['diskThickness']
-    gridUnit = kwargs['gridUnit']
-    chordRef = kwargs.pop('chordRef', 1.0)
-    nLoadingNodes = kwargs.pop('nLoadingNodes', 20)
-    tipGap = kwargs.pop('tipGap', 'inf')
-    initialBladeDirection = kwargs.pop('initialBladeDirection', [1, 0, 0])
 
-    if rotationDirectionRule not in ['rightHand', 'leftHand']:
-        raise ValueError(f'Exiting. Invalid rotationDirectionRule of:{rotationDirectionRule}')
-    if len(axisOfRotation) != 3:
+
+    if betDisk["rotationDirectionRule"] not in ['rightHand', 'leftHand']:
+        raise ValueError('Invalid rotationDirectionRule of {}. Exiting.'.format(betDisk["rotationDirectionRule"]))
+    if len(betDisk["axisOfRotation"]) != 3:
         raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
-    if len(centerOfRotation) != 3:
+    if len(betDisk["centerOfRotation"]) != 3:
         raise ValueError('centerOfRotation must be a list of size 3. Exiting')
 
     xrotorDict = readXROTORFile(xrotorFileName)
 
-
-    diskJSON = {'axisOfRotation': axisOfRotation,
-                'centerOfRotation': centerOfRotation,
-                'rotationDirectionRule': rotationDirectionRule}
-
     # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
 
-    diskJSON['omega'] = xrotorDict['omegaDim'] * gridUnit / xrotorDict['vso']  # check this
-    diskJSON['numberOfBlades'] = xrotorDict['nBlades']
-    diskJSON['radius'] = xrotorDict['rad'] / gridUnit
-    diskJSON['twists'] = generateTwists(xrotorDict, gridUnit)
-    diskJSON['chords'] = generateChords(xrotorDict, gridUnit)
-    diskJSON['MachNumbers'] = generateMachs()
-    diskJSON['alphas'] = generateAlphas()
-    diskJSON['ReynoldsNumbers'] = generateReys()
-    diskJSON['thickness'] = diskThickness
-    diskJSON['chordRef'] = chordRef
-    diskJSON['nLoadingNodes'] = nLoadingNodes
-    diskJSON['tipGap'] = tipGap
-    diskJSON['sectionalRadiuses'] = [diskJSON['radius'] * r for r in xrotorDict['rRstations']]
-    diskJSON['initialBladeDirection'] = initialBladeDirection
-    diskJSON['sectionalPolars'] = []
+    betDisk['omega'] = xrotorDict['omegaDim'] * betDisk["gridUnit"] / xrotorDict['vso']  # check this
+    betDisk['numberOfBlades'] = xrotorDict['nBlades']
+    betDisk['radius'] = xrotorDict['rad'] / betDisk["gridUnit"]
+    betDisk['twists'] = generateTwists(xrotorDict, betDisk["gridUnit"])
+    betDisk['chords'] = generateChords(xrotorDict, betDisk["gridUnit"])
+    betDisk['MachNumbers'] = generateMachs()
+    betDisk['alphas'] = generateAlphas()
+    betDisk['ReynoldsNumbers'] = generateReys()
+    betDisk['sectionalRadiuses'] = [betDisk['radius'] * r for r in xrotorDict['rRstations']]
+    betDisk['sectionalPolars'] = []
 
     for secId in range(0, xrotorDict['nAeroSections']):
-        polar = getPolar(xrotorDict, diskJSON['alphas'], diskJSON['MachNumbers'], secId)
-        diskJSON['sectionalPolars'].append(polar)
+        polar = getPolar(xrotorDict, betDisk['alphas'], betDisk['MachNumbers'], secId)
+        betDisk['sectionalPolars'].append(polar)
 
-    return diskJSON
+    betDisk.pop("gridUnit",None) # grid unit is only needed to do calculations but not by the solver.
+
+    return betDisk
 
 
 ########################################################################################################################
@@ -1036,22 +1363,20 @@ def test_translator():
     run the translator with a representative set of inputs
     dumps betDisk JSON file that can be added to a Flow360 JSON file.
     """
-    diskThickness = 0.05
-    gridUnit = 1
-    chordRef = 1
-    nLoadingNodes = 20
-    tipGap = 'inf'
-    bladeLineChord = 1
+    betDiskDict = {'diskThickness': 0.05,
+    'gridUnit': 1,
+    'chordRef': 1,
+    'nLoadingNodes': 20,
+    'tipGap': 'inf',
+    'bladeLineChord': 1,
+    'axisOfRotation': [0, 0, 1],
+    'centerOfRotation': [0, 0, 0],
+    'rotationDirectionRule': 'rightHand'}
+
     # initialBladeDirection =  [1, 0, 0]  # Used for time accurate Blade Line simulations
     xrotorFileName = 'examples/xrotorTranslator/ecruzer.prop'
-    axisOfRotation = [0, 0, 1]
-    centerOfRotation = [0, 0, 0]
-    rotationDirectionRule = 'rightHand'
 
-    xrotorInputDict = generateXrotorBETJSON(xrotorFileName, axisOfRotation, centerOfRotation,
-                        rotationDirectionRule, diskThickness=diskThickness, gridUnit=gridUnit,
-                        chordRef=chordRef, nLoadingNodes=nLoadingNodes, tipGap=tipGap,
-                        bladeLineChord=bladeLineChord)
+    xrotorInputDict = generateXrotorBETJSON(xrotorFileName, betDiskDict)
     betDiskJson = {'BETDisks': [xrotorInputDict]}  # make all that data a subset of BETDisks dictionary, notice the [] b/c
     # the BETDisks dictionary accepts a list of bet disks
     # dump the sample dictionary to a json file
