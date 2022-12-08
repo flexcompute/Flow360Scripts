@@ -1,0 +1,47 @@
+name: Publish BETDISK to pipy
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer without leading 'v',eg: 1.0.1, 1.1.1"
+        required: true
+        type: string
+      branch:
+        description: "Publish pacakge against specific branch"
+        required: true
+        type: string
+        default: master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Install poetry
+      run: pipx install poetry
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'poetry'
+    - name: Install dependencies
+      run: poetry install
+      working-directory: preprocessing/BETDisk
+    - name: Pump version number
+      run: poetry version ${{ inputs.version }}
+      working-directory: preprocessing/BETDisk
+    - name: Setup pipy token
+      shell: bash
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        poetry config pypi-token.pypi "$PYPI_TOKEN"
+    - run: poetry build
+      working-directory: preprocessing/BETDisk
+    - run: poetry publish
+      working-directory: preprocessing/BETDisk
+
