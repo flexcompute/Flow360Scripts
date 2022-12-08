@@ -83,13 +83,7 @@ def main():
         # DFDC and Xrotor come from the same family of CFD codes. They are both written by Mark Drela over at MIT.
         # we can use the same translator for both DFDC and Xrotor.
 
-        dfdcInputDicts[diskIdx] = interface.generateXrotorBETJSON(dfdcFilePath, betdiskParams['axisOfRotation'],
-                                    betdiskParams['centerOfRotation'],
-                                    betdiskParams['rotationDirectionRule'],
-                                    diskThickness=betdiskParams['thickness'],
-                                    gridUnit=betdiskParams['gridUnit'],
-                                    chordRef=betdiskParams['chordRef'],
-                                    nLoadingNodes=betdiskParams['nLoadingNodes'])
+        dfdcInputDicts[diskIdx] = interface.generateXrotorBETJSON(dfdcFilePath, betdiskParams)
 
     # now we read in the Flow360 input JSON file we will append the BET information to. This will add  numBetDisks
     # to this Flow360 JSON file.

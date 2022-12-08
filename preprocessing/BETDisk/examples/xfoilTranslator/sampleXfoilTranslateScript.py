@@ -34,34 +34,31 @@ def getBetDiskParams(diskIdx):
     # For this Example we will assign them manually so you see what it needs to look like:
     # All these parameters are explained in the Flow360 documentation under
     # https://docs.flexcompute.com/projects/flow360/en/latest/solverConfiguration/solverConfiguration.html?highlight=initialBladeDirection#betdisks-list
-    betDiskDict = [{"gridUnit": 1,
-                 "centerOfRotation": [0, 0, 0],
+
+    location= [10*diskIdx, 0, 0] # small hack to get a different location for each BETdisk.
+
+    betDiskDict = {"centerOfRotation": location,
                  "rotationDirectionRule": "leftHand",
                  "axisOfRotation": [0, 0, 1],
+                 "initialBladeDirection": [1,0,0],
                  "thickness": 15,
                  "chordRef": 14,
-                 "nLoadingNodes": 20},
-                  # Now we define the 2ND betDisk.
-                  {"gridUnit": 1,
-                   "centerOfRotation": [10, 0, 0],
-                   "rotationDirectionRule": "rightHand",
-                   "axisOfRotation": [0, 0, 1],
-                   "thickness": 0.05,
-                   "chordRef": 1,
-                   "nLoadingNodes": 20}]
+                 "nLoadingNodes": 20,
+                 "omega" : 0.0046,
+                 "tipGap": "inf",
+                 "numberOfBlades" : 3}
 
-    return betDiskDict[diskIdx] # Since we are doing one BETdisk at a time, return only the betDisk information relevant
-# to the disk we are currently doing.
+    return betDiskDict
 
 ########################################################################################################################
 def main():
     # this example will show you how to create a BET disk input JSON file with 2 BET disks.
 
     # path to the xfoil input file(s) you would like to use.
-    xfoilFilePathList = ['Xv15_xfoil_section1Polars.pacc', 'Xv15_xfoil_section2Polars.pacc']  # Each BET disk will get its own geometry and polars definition.
-    xfoilFilePathList = [os.path.join(here, file) for file in xfoilFilePathList]
+    geometryFilePathList = ['xv15_geometry_xfoil_translator.csv', 'xv15_geometry_xfoil_translator.csv']  # Each BET disk will get its own geometry and polars definition.
+    geometryFilePathList = [os.path.join(here, file) for file in geometryFilePathList]
     # # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
-    numBetDisks = 1 # TEMPORARY HARD CODED len(xfoilFilePathList)  # number of disks is length of the filename list
+    numBetDisks = len(geometryFilePathList)  # number of disks is length of the filename list
 
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
@@ -72,24 +69,17 @@ def main():
 
     # for loop to create each disk in turn
     for diskIdx in range(numBetDisks):
-
-        # we need extra information to define a BET disk that is not in the above xfoil file.
+        # we need extra information to define a BET disk that is not in the above c81 file.
         # Get it for the BET disk we are doing now.
-        betdiskParams = getBetDiskParams(diskIdx)
-        xfoilFilePath = xfoilFilePathList[diskIdx]
+        betDiskDict = getBetDiskParams(diskIdx)
+        geometryFilePath = geometryFilePathList[diskIdx]
 
-        xfoilInputDicts[diskIdx] = generateXfoilBETJSON(xfoilFilePath, betdiskParams['axisOfRotation'],
-                                    betdiskParams['centerOfRotation'],
-                                    betdiskParams['rotationDirectionRule'],
-                                    diskThickness=betdiskParams['thickness'],
-                                    gridUnit=betdiskParams['gridUnit'],
-                                    chordRef=betdiskParams['chordRef'],
-                                    nLoadingNodes=betdiskParams['nLoadingNodes'])
+        xfoilInputDicts[diskIdx] = generateXfoilBETJSON(geometryFilePath, betDiskDict)
 
     # now we read in the Flow360 input JSON file we will append the BET information to. This will add  numBetDisks
     # to this Flow360 JSON file.
-    with open (flow360BaseJsonFile) as fh:
-        flow360Dict  = json.load(fh)
+    with open(flow360BaseJsonFile) as fh:
+        flow360Dict = json.load(fh)
 
     flow360Dict['BETDisks'] = xfoilInputDicts
     # Append the Flow360 data to the Flow360 input JSON
