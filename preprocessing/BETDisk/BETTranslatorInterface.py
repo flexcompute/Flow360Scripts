@@ -17,15 +17,9 @@ from numpy import arange, array, clip, exp, log
 import json
 from os import path
 
-
-
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
 ########################################################################################################################
 def  readInXfoilPolar(polarFile):
     '''
-
     Parameters
     ----------
     polarFile: path to the xfoil polar file.
@@ -49,20 +43,26 @@ def  readInXfoilPolar(polarFile):
     for i in range (4): # skip the next 4 lines
         line = xfoilFid.readline()
     while True:
-        clAlphas.append(float(line.strip().split(' ')[0]))
-        clValues[machNum].append(float(line.strip().split(' ')[3]))
-        cdValues[machNum].append(float(line.strip().split(' ')[6]))
+        linecontents=line.strip().split(' ')
+
+        c = linecontents.count('') # remove all instances of '' because that number varies form file to file.
+        for i in range(c):
+            linecontents.remove('')
+
+        clAlphas.append(float(linecontents[0]))
+        clValues[machNum].append(float(linecontents[1]))
+        cdValues[machNum].append(float(linecontents[2]))
         line = xfoilFid.readline()
         if len(line) == 0:#If we did all the alphas and we are done
             break
+    # extrapolate alphas to +-180 deg and Use the flat plate Cl and CD outside of where we have values from Xfoil
     clAlphas, clMachNums, clValues, cdValues=blendPolarstoFlatplate(clAlphas, [machNum], clValues, cdValues)
 
     #Now we interpolate the polar data to a constant set of alphas to make sure we have all the smae alphas across all mach and section
     # 10 deg steps from -180 ->-30 and from 30 to 180. 1 deg steps from -29 to 29
-    negAng = list(arange(-30, -5, 1).astype(float))
-    posAng = list(arange(-5, 10, 1).astype(float))
-    posAng2 = list(arange(10, 29, 1).astype(float))
-    alphas = list(arange(-180, -30, 10).astype(float)) + negAng + posAng + posAng2 + list(arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
+    degIncrementAng = list(arange(-30, 30, 1).astype(float))
+
+    alphas = list(arange(-180, -30, 10).astype(float)) +degIncrementAng + list(arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
 
     clInterp=interp1d(clAlphas,clValues[clMachNums[0]],kind='linear') # method should be linear to make sure we still have 0 at the +- 180 values
     cdInterp = interp1d(clAlphas, cdValues[clMachNums[0]],kind='linear')  # method should be linear to make sure we still have 0 at the +- 180 values
@@ -107,7 +107,6 @@ def blendPolarstoFlatplate(clAlphas, clMachNums, clValues, cdValues):
 
     for i in range (numMissingAlphasMin - 1): # add alphas at beginning of clAlphas list
         clAlphas.insert(0,clAlphas[0]-polarAlphaStepBlend)
-        print (clAlphas[0])
         a = clAlphas[0] * pi / 180  # smallest alpha in radians
         for i, mach in enumerate (clMachNums):
             blendVal = blendFuncValue(blendWindow, a, alphaMin * pi / 180, 'belowCLmin')  # we are on the alphaCLmin side going up in CL
@@ -306,46 +305,33 @@ def readInXfoilData (betDisk, xfoilPolarfiles):
 
     betDisk['sectionalPolars'] = []
     betDisk['MachNumbers']=[]
-    secpol = {} # temporary dict to store all the section polars before assigning it to the right location.
-    secpol['liftCoeffs'] = []
-    secpol['dragCoeffs'] = []
+
+    machNumbers = []
+
     for secIdx, section in enumerate(betDisk['sectionalRadiuses']):
+        secpol = {}  # temporary dict to store all the section polars before assigning it to the right location.
+        secpol['liftCoeffs'] = []
+        secpol['dragCoeffs'] = []
+
         polarFiles=xfoilPolarfiles[secIdx]
+        machNumbersforsection = []
         for polarFile in polarFiles:
             print ('doing sectionalRadius %f with polar file %s'%(section,polarFile) )
+            polarFile=polarFile.strip(' ') # remove potential spaces
             if not path.isfile(polarFile):
                 raise ValueError('Error: xfoil format polar file %s does not exist.' % polarFile)
-            alphaList, MachNums, clValues, cdValues = readInXfoilPolar(polarFile) # read in xfoil data and use flat plate values outside of given polar range
-            betDisk['MachNumbers'].append(MachNums)
-            secpol['liftCoeffs'].append([clValues)
-            secpol['dragCoeffs'].append([cdList)
-
+            alphaList, machNum, clValues, cdValues = readInXfoilPolar(polarFile) # read in xfoil data and use flat plate values outside of given polar range
+            machNumbersforsection.append(float(machNum))
+            secpol['liftCoeffs'].append([clValues])
+            secpol['dragCoeffs'].append([cdValues])
+        machNumbers.append(machNumbersforsection)
+        betDisk['sectionalPolars'].append(secpol)
+    for i in range (len(machNumbers)-1): # check to make sure all N cross sections have the same list of mach numbers
+        if machNumbers[i] != machNumbers[i+1]:
+            raise ValueError('ERROR: the mach numbers from the Xfoil polars need to be the same set for each cross section. Here sections %i and %i have the following sets of mach numbers:%s and %s'%(i,i+1,str(secpol['machNumbers'][i]),str(secpol['machNumbers'][i+1])))
     betDisk['alphas'] = alphaList
-
-    XXXXXXXXXXXXXXXX
-    betDisk['sectionalPolars'].append(secpol)
-
-        # if  'MachNumbers' in betDisk.keys() and betDisk['MachNumbers'] != machList:
-        #     raise ValueError('ERROR: The mach Numbers do not match across the various sectional radi polar xfoil files. All the sectional radi need to have the same mach Numbers across all xfoil polar files')
-        # if 'alphas' in betDisk.keys() and betDisk['alphas'] != alphaList:
-        #     raise ValueError( 'ERROR: The alphas do not match across the various sectional radi polar xfoil files. All the sectional radi need to have the same alphas across all xfoil polar files')
-        #
-        # betDisk['MachNumbers']=machList
-        # betDisk['alphas']=alphaList
-        #
-        #
-        # # since the order of brackets is Mach#, Rey#, Values then we need to return:
-        # # [[[array for MAch #1]],[[array for MAch #2]],[[array for MAch #3]],[[array for MAch #4]],......]
-        #
-        # secpol = {}
-        # secpol['liftCoeffs'] = []
-        # secpol['dragCoeffs'] = []
-        # for mach in betDisk['MachNumbers']:
-        #     secpol['liftCoeffs'].append([clList[mach]])
-        #     secpol['dragCoeffs'].append([cdList[mach]])
-        # betDisk['sectionalPolars'].append(secpol)
-        # if betDisk["alphas"][0] != -180 and betDisk["alphas"][-1] !=180: # if we don't have polars for the full circle of alpha angles.
-        #     blendPolarstoFlatplate(betDisk)
+    betDisk['MachNumbers']=machNumbers[0] # they should all be the same set so just pick the first one.
+#    betDisk['sectionalPolars'].append(secpol)
 
     return betDisk
 
@@ -478,6 +464,7 @@ def parseGeometryfile(geometryFileName):
             sectionalRadiuses.append(float(splitLine[0]))
             splitLine.pop(0)
             polarFiles.append(splitLine)
+            #polarFiles = [x.strip(' ') for x in polarFiles] # remove spaces in file names
             line = fid.readline().strip('\n') # read next line.
         except:
             raise ValueError('ERROR: exception thrown when parsing line %s from geometry file %s'%(line, geometryFileName))

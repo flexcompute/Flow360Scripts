@@ -55,7 +55,7 @@ def main():
     # this example will show you how to create a BET disk input JSON file with 2 BET disks.
 
     # path to the xfoil input file(s) you would like to use.
-    geometryFilePathList = ['xv15_geometry_xfoil_translator.csv', 'xv15_geometry_xfoil_translator.csv']  # Each BET disk will get its own geometry and polars definition.
+    geometryFilePathList = ['xv15_geometry_xfoil_translatorDisk0.csv', 'xv15_geometry_xfoil_translatorDisk1.csv']  # Each BET disk will get its own geometry and polars definition.
     geometryFilePathList = [os.path.join(here, file) for file in geometryFilePathList]
     # # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
     numBetDisks = len(geometryFilePathList)  # number of disks is length of the filename list
