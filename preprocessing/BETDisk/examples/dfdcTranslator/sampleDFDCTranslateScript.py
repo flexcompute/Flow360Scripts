@@ -33,7 +33,7 @@ def getBetDiskParams(diskIdx):
     # For this Example we will assign them manually so you see what it needs to look like:
     # All these parameters are explained in the Flow360 documentation under
     # https://docs.flexcompute.com/projects/flow360/en/latest/solverConfiguration/solverConfiguration.html?highlight=initialBladeDirection#betdisks-list
-    betDiskDict = [{"gridUnit": 1,
+    betDiskDict = [{"meshUnit": 1,
                  "centerOfRotation": [0, 0, 0],
                  "rotationDirectionRule": "leftHand",
                  "axisOfRotation": [0, 0, 1],
@@ -41,7 +41,7 @@ def getBetDiskParams(diskIdx):
                  "chordRef": 14,
                  "nLoadingNodes": 20},
                   # Now we define the 2ND betDisk.
-                  {"gridUnit": 1,
+                  {"meshUnit": 1,
                    "centerOfRotation": [10, 0, 0],
                    "rotationDirectionRule": "rightHand",
                    "axisOfRotation": [0, 0, 1],
