@@ -1,0 +1,8 @@
+This directory contains an example script showing how to run the dfdc => Flow 360 Bet disk translator.
+
+To run simply type  "python3 sampleDFDCTranslateScript.py"
+
+In this directory we also have files called:
+dfdc_xv15_twist0.case and dfdcTest.case which are sample dfdc input files.
+
+In the examples directory above, we also have the flow360_XV15_BET_Template.json. It is a sample Flow360 input JSON file to which we will add the BET disk information.

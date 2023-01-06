@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "flow360-betdisk"
+version = "0.1.1"
+description = ""
+authors = ["Flexcompute <support@flexcompute.com>"]
+packages= [
+    { include = "BETDisk" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+scipy = "^1.9.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
