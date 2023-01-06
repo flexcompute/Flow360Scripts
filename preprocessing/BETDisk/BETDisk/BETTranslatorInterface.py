@@ -12,11 +12,14 @@ EXAMPLE codes
 
 
 # import sys
-# import os
+import os
 from scipy.interpolate import interp1d
+import numpy as np
 from math import *
 import json
 from os import path
+
+from .utils import *
 
 ########################################################################################################################
 def  readInXfoilPolar(polarFile):
@@ -61,9 +64,9 @@ def  readInXfoilPolar(polarFile):
 
     #Now we interpolate the polar data to a constant set of alphas to make sure we have all the smae alphas across all mach and section
     # 10 deg steps from -180 ->-30 and from 30 to 180. 1 deg steps from -29 to 29
-    degIncrementAng = list(arange(-30, 30, 1).astype(float))
+    degIncrementAng = list(np.arange(-30, 30, 1).astype(float))
 
-    alphas = list(arange(-180, -30, 10).astype(float)) +degIncrementAng + list(arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
+    alphas = list(np.arange(-180, -30, 10).astype(float)) +degIncrementAng + list(np.arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
 
     clInterp=interp1d(clAlphas,clValues[clMachNums[0]],kind='linear') # method should be linear to make sure we still have 0 at the +- 180 values
     cdInterp = interp1d(clAlphas, cdValues[clMachNums[0]],kind='linear')  # method should be linear to make sure we still have 0 at the +- 180 values
@@ -96,9 +99,9 @@ def blendPolarstoFlatplate(clAlphas, clMachNums, clValues, cdValues):
     alphaMin = clAlphas[0]
     alphaMax = clAlphas[-1]
     if alphaMin < -180:
-        raise ValueError('ERROR: alphaMin is smaller then -180: %f',alphaMin)
+        raise ValueError(f'ERROR: alphaMin is smaller then -180: {alphaMin}')
     if alphaMax > 180:
-        raise ValueError('ERROR: alphaMax is greater then 180: %f',alphaMin)
+        raise ValueError(f'ERROR: alphaMax is greater then 180: {alphaMin}')
 
     blendWindow = 0.5  # 0.5 radians
 
@@ -190,7 +193,7 @@ def readInC81Polarc81Format(polarFile):
     # we already read the mach numbers line in the while loop above. so just split it.
     cdMachNums = [float(i) for i in cdMachNums if i]  # remove empty items and trailing \n in clMachNums
     if clMachNums != cdMachNums: # if we have different lists of  machs
-        raise ValueError('ERROR: in file %s, The machs in the Cl polar do not match the machs in the CD polar, we have %i Cl mach values and %i CD mach values:'%(polarFile,clMachNums,cdMachNums))
+        raise ValueError(f'ERROR: in file {polarFile}, The machs in the Cl polar do not match the machs in the CD polar, we have {clMachNums} Cl mach values and {cdMachNums} CD mach values:')
 
     for mach in cdMachNums:
         cdValues[mach] = []
@@ -211,8 +214,7 @@ def readInC81Polarc81Format(polarFile):
 
     if clAlphas != cdAlphas:  # if we have different  lists of alphas
         raise ValueError(
-            'ERROR: in file %s, The alphas in the Cl polar do not match the alphas in the CD polar. We have %i Cls and %i Cds' % (
-            polarFile, clAlphas, cdAlphas))
+            f'ERROR: in file {polarFile}, The alphas in the Cl polar do not match the alphas in the CD polar. We have {clAlphas} Cls and {cdAlphas} Cds')
 
     # We also have the moment informatiomn in a c81 file but we ignore that for our purposes.
 
@@ -261,8 +263,7 @@ def readInC81Polarcsv(polarFile):
     cdMachNums = [float(i.strip()) for i in cdMachNums if i]  # remove empty items and trailing \n in clMachNums
     if clMachNums != cdMachNums: # if we have different lists of  machs
         raise ValueError(
-            'ERROR: in file %s, The machs in the Cl polar do not match the machs in the CD polar, we have %i Cl mach values and %i CD mach values:' % (
-            polarFile, clMachNums, cdMachNums))
+            f'ERROR: in file {polarFile}, The machs in the Cl polar do not match the machs in the CD polar, we have {clMachNums} Cl mach values and {cdMachNums} CD mach values:')
 
     for mach in cdMachNums:
         cdValues[mach] = []
@@ -279,8 +280,7 @@ def readInC81Polarcsv(polarFile):
 
     if clAlphas != cdAlphas:  # if we have different  lists of alphas
         raise ValueError(
-            'ERROR: in file %s, The alphas in the Cl polar do not match the alphas in the CD polar. We have %i Cls and %i Cds' % (
-                polarFile, len(clAlphas), len(cdAlphas)))
+            f'ERROR: in file {polarFile}, The alphas in the Cl polar do not match the alphas in the CD polar. We have {len(clAlphas)} Cls and {len(cdAlphas)} Cds')
 
     # We also have the moment information in a c81 file but we ignore that for our purposes.
     if clAlphas[0] != -180 and clAlphas[-1] != 180:  # if we don't have polars for the full circle of alpha angles.
@@ -289,7 +289,7 @@ def readInC81Polarcsv(polarFile):
     return clAlphas, clMachNums, clValues, cdValues
 
 ###############################################################################################################
-def readInXfoilData (betDisk, xfoilPolarfiles):
+def readInXfoilData(betDisk, xfoilPolarfiles):
     '''
     This function reads in the Xfoil polars and assigns the resulting values correctly into the BET disk dictionary
     Parameters
@@ -302,7 +302,7 @@ def readInXfoilData (betDisk, xfoilPolarfiles):
     betDisk - same dictionary as was passed to function but with all the polar information added.
     '''
     if len(xfoilPolarfiles) != len(betDisk['sectionalRadiuses']):
-        raise ValueError('Error: There is an error in the number of polar files (%i) vs the number of sectional Radiuses (%i)'%(len(xfoilPolarfiles) , len(betDisk['sectionalRadiuses'])))
+        raise ValueError(f'Error: There is an error in the number of polar files ({len(xfoilPolarfiles)}) vs the number of sectional Radiuses ({len(betDisk["sectionalRadiuses"])})')
 
     betDisk['sectionalPolars'] = []
     betDisk['MachNumbers']=[]
@@ -317,10 +317,9 @@ def readInXfoilData (betDisk, xfoilPolarfiles):
         polarFiles=xfoilPolarfiles[secIdx]
         machNumbersforsection = []
         for polarFile in polarFiles:
-            print ('doing sectionalRadius %f with polar file %s'%(section,polarFile) )
-            polarFile=polarFile.strip(' ') # remove potential spaces
+            print(f'doing sectionalRadius {section} with polar file {polarFile}')
             if not path.isfile(polarFile):
-                raise ValueError('Error: xfoil format polar file %s does not exist.' % polarFile)
+                raise ValueError(f'Error: xfoil format polar file {polarFile} does not exist.')
             alphaList, machNum, clValues, cdValues = readInXfoilPolar(polarFile) # read in xfoil data and use flat plate values outside of given polar range
             machNumbersforsection.append(float(machNum))
             secpol['liftCoeffs'].append([clValues])
@@ -329,7 +328,8 @@ def readInXfoilData (betDisk, xfoilPolarfiles):
         betDisk['sectionalPolars'].append(secpol)
     for i in range (len(machNumbers)-1): # check to make sure all N cross sections have the same list of mach numbers
         if machNumbers[i] != machNumbers[i+1]:
-            raise ValueError('ERROR: the mach numbers from the Xfoil polars need to be the same set for each cross section. Here sections %i and %i have the following sets of mach numbers:%s and %s'%(i,i+1,str(secpol['machNumbers'][i]),str(secpol['machNumbers'][i+1])))
+            raise ValueError(f'ERROR: the mach numbers from the Xfoil polars need to be the same set for each cross section. Here sections {i} \
+                    and {i+1} have the following sets of mach numbers:{secpol["machNumbers"][i]} and {secpol["machNumbers"][i+1]}')
     betDisk['alphas'] = alphaList
     betDisk['MachNumbers']=machNumbers[0] # they should all be the same set so just pick the first one.
 #    betDisk['sectionalPolars'].append(secpol)
@@ -351,14 +351,14 @@ def readInC81Polars (betDisk, c81Polarfiles):
     betDisk - same dictionary as was passed to function but with all the polar information added.
     '''
     if len(c81Polarfiles) != len(betDisk['sectionalRadiuses']):
-        raise ValueError('Error: There is an error in the number of polar files (%i) vs the number of sectional Radiuses (%i)'%(len(c81Polarfiles) , len(betDisk['sectionalRadiuses'])))
+        raise ValueError(f'Error: There is an error in the number of polar files ({len(c81Polarfiles)}) vs the number of sectional Radiuses ({len(betDisk["sectionalRadiuses"])})')
 
     betDisk['sectionalPolars'] = []
     for secIdx, section in enumerate(betDisk['sectionalRadiuses']):
-        polarFile=c81Polarfiles[secIdx][0].strip()# Take the first element of that list. Remove all spaces.
-        print ('doing sectionalRadius %f with polar file %s'%(section,polarFile) )
+        polarFile=c81Polarfiles[secIdx][0]# Take the first element of that list.
+        print (f'doing sectionalRadius {section} with polar file {polarFile}')
         if not path.isfile(polarFile):
-            raise ValueError('Error: c81 format polar file %s does not exist.' % polarFile)
+            raise ValueError(f'Error: c81 format polar file {polarFile} does not exist.')
 
         if 'csv' in polarFile: # if we are dealing with a csv file
             alphaList,machList,clList,cdList=readInC81Polarcsv(polarFile)
@@ -402,7 +402,7 @@ def generateXfoilBETJSON(geometryFileName,betDisk):
     """
 
     if betDisk['rotationDirectionRule'] not in ['rightHand', 'leftHand']:
-        raise ValueError('Exiting. Invalid rotationDirectionRule: %s'% {betDisk['rotationDirectionRule']})
+        raise ValueError(f'Exiting. Invalid rotationDirectionRule: {betDisk["rotationDirectionRule"]}')
     if len(betDisk['axisOfRotation']) != 3:
         raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
     if len(betDisk['centerOfRotation']) != 3:
@@ -449,8 +449,9 @@ def parseGeometryfile(geometryFileName):
     fid=open(geometryFileName)
     line=fid.readline()
     if '#' not in line:
-        raise ValueError("ERROR: first character of first line of geometry file %s should be the # character to denote a header line"%(geometryFileName))
+        raise ValueError(f"ERROR: first character of first line of geometry file {geometryFileName} should be the # character to denote a header line")
 
+    geometryFilePath = os.path.dirname(os.path.realpath(geometryFileName))
     sectionalRadiuses=[]
     polarFiles=[]
     radiusStation=[]
@@ -463,12 +464,11 @@ def parseGeometryfile(geometryFileName):
         try:
             splitLine=line.split(',')
             sectionalRadiuses.append(float(splitLine[0]))
-            splitLine.pop(0)
-            polarFiles.append(splitLine)
+            polarFiles.append([os.path.join(geometryFilePath, file.strip()) for file in splitLine[1:]])
             #polarFiles = [x.strip(' ') for x in polarFiles] # remove spaces in file names
             line = fid.readline().strip('\n') # read next line.
-        except:
-            raise ValueError('ERROR: exception thrown when parsing line %s from geometry file %s'%(line, geometryFileName))
+        except Exception as e:
+            raise ValueError(f'ERROR: exception thrown when parsing line {line} from geometry file {geometryFileName}')
 
     while True:
         try:
@@ -479,7 +479,7 @@ def parseGeometryfile(geometryFileName):
             chord.append(float(line.split(',')[1]))
             twist.append(float(line.split(',')[2]))
         except:
-            raise ValueError('ERROR: exception thrown when parsing line %s from geometry file %s' % (line, geometryFileName))
+            raise ValueError(f'ERROR: exception thrown when parsing line {line} from geometry file {geometryFileName}')
 
 
     #intialize chord and twist with 0,0 value at centerline
@@ -513,7 +513,7 @@ def generateC81BETJSON(geometryFileName,betDisk):
     """
 
     if betDisk['rotationDirectionRule'] not in ['rightHand', 'leftHand']:
-        raise ValueError('Exiting. Invalid rotationDirectionRule: %s'% {betDisk['rotationDirectionRule']})
+        raise ValueError(f'Exiting. Invalid rotationDirectionRule: {betDisk["rotationDirectionRule"]}')
     if len(betDisk['axisOfRotation']) != 3:
         raise ValueError(f'axisOfRotation must be a list of size 3. Exiting.')
     if len(betDisk['centerOfRotation']) != 3:
@@ -1104,7 +1104,7 @@ def blendFuncValue(blendWindow, alpha, alphaMinMax, alphaRange):
             return 0
         return cos((alpha - alphaMinMax) / blendWindow * pi / 2) ** 2
     else:
-        raise ValueError('alphaRange must be either aboveCLmax or belowCLmin, it is: %s'%alphaRange)
+        raise ValueError(f'alphaRange must be either aboveCLmax or belowCLmin, it is: {alphaRange}')
 
 
 ########################################################################################################################

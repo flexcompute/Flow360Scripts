@@ -15,7 +15,7 @@ class AdvancedTestSuite(unittest.TestCase):
     def test_xrotor(self):    
 
 
-        betDiskAdditionalInfo = {"gridUnit": 1,
+        betDiskAdditionalInfo = {"meshUnit": 1,
                                  "centerOfRotation": [0, 0, 0],
                                  "rotationDirectionRule": "leftHand",
                                  "axisOfRotation": [0, 0, 1],
@@ -24,13 +24,10 @@ class AdvancedTestSuite(unittest.TestCase):
                                  "nLoadingNodes": 20}
 
         inputFile = os.path.join(here, 'data/xv15_like_twist0.xrotor')
-        betFlow360 = interface.generateXrotorBETJSON(inputFile, betDiskAdditionalInfo['axisOfRotation'],
-                                    betDiskAdditionalInfo['centerOfRotation'],
-                                    betDiskAdditionalInfo['rotationDirectionRule'],
-                                    diskThickness=betDiskAdditionalInfo['thickness'],
-                                    gridUnit=betDiskAdditionalInfo['gridUnit'],
-                                    chordRef=betDiskAdditionalInfo['chordRef'],
-                                    nLoadingNodes=betDiskAdditionalInfo['nLoadingNodes'])
+        betFlow360 = interface.generateXrotorBETJSON(inputFile, betDiskAdditionalInfo)
+
+        betFlow360['tipGap'] = 'inf'
+        betFlow360['initialBladeDirection'] = [1, 0, 0]
 
         with open('betFlow360.json', 'w') as fh:
             json.dump(betFlow360, fh, indent=4)

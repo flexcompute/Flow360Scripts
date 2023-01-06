@@ -15,7 +15,7 @@ class AdvancedTestSuite(unittest.TestCase):
     def test_dfdc(self):    
 
 
-        betDiskAdditionalInfo = {"gridUnit": 1,
+        betDiskAdditionalInfo = {"meshUnit": 1,
                                  "centerOfRotation": [10, 0, 0],
                                  "rotationDirectionRule": "rightHand",
                                  "axisOfRotation": [0, 0, 1],
@@ -24,14 +24,10 @@ class AdvancedTestSuite(unittest.TestCase):
                                  "nLoadingNodes": 20}
 
         inputFile = os.path.join(here, 'data/dfdcTest.case')
-        betFlow360 = interface.generateXrotorBETJSON(inputFile, betDiskAdditionalInfo['axisOfRotation'],
-                                    betDiskAdditionalInfo['centerOfRotation'],
-                                    betDiskAdditionalInfo['rotationDirectionRule'],
-                                    diskThickness=betDiskAdditionalInfo['thickness'],
-                                    gridUnit=betDiskAdditionalInfo['gridUnit'],
-                                    chordRef=betDiskAdditionalInfo['chordRef'],
-                                    nLoadingNodes=betDiskAdditionalInfo['nLoadingNodes'])
+        betFlow360 = interface.generateXrotorBETJSON(inputFile, betDiskAdditionalInfo)
 
+        betFlow360['tipGap'] = 'inf'
+        betFlow360['initialBladeDirection'] = [1, 0, 0]
 
         with open('betFlow360.json', 'w') as fh:
             json.dump(betFlow360, fh, indent=4)
