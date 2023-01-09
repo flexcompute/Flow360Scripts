@@ -42,9 +42,9 @@ class AdvancedTestSuite(unittest.TestCase):
         #
         # with open('betFlow360.json', 'w') as fh:
         #     json.dump(betFlow360, fh, indent=4)
-
-        with open('betFlow360.json', 'w') as fh:
-            json.dump(betFlow360, fh, indent=4)
+        #
+        # with open('betFlow360.json', 'w') as fh:
+        #     json.dump(betFlow360, fh, indent=4)
 
         with open(os.path.join(here, 'ref/dfdcTest.json')) as fh:
             refbetFlow360 = json.load(fh)

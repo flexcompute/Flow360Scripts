@@ -37,8 +37,8 @@ class AdvancedTestSuite(unittest.TestCase):
         # with open('xv15_c81_translated_BET.json', 'w') as fh:
         #     json.dump(flow360Dict, fh, indent=4)
         #
-        with open('betFlow360.json', 'w') as fh:
-            json.dump(betFlow360, fh, indent=4)
+        # with open('betFlow360.json', 'w') as fh:
+        #     json.dump(betFlow360, fh, indent=4)
 
 
         with open(os.path.join(here, 'ref/c81Test.json')) as fh:
