@@ -15,23 +15,30 @@ class AdvancedTestSuite(unittest.TestCase):
     def test_c81(self):    
 
 
-        betDiskAdditionalInfo = {"gridUnit": 1,
-                                 "centerOfRotation": [0, 0, 0],
+        betDiskAdditionalInfo = {"centerOfRotation": [0, 0, 0],
                                  "rotationDirectionRule": "leftHand",
                                  "axisOfRotation": [0, 0, 1],
                                  "thickness": 15,
                                  "chordRef": 14,
-                                 "nLoadingNodes": 20}
+                                 "nLoadingNodes": 20,
+                                 "omega" : 0.0046,
+                                 "numberOfBlades" : 3}
 
-        inputFile = os.path.join(here, 'data/Xv15_c81_section1Polars.csv')
-        betFlow360 = interface.generateC81BETJSON(inputFile, betDiskAdditionalInfo['axisOfRotation'],
-                                    betDiskAdditionalInfo['centerOfRotation'],
-                                    betDiskAdditionalInfo['rotationDirectionRule'],
-                                    diskThickness=betDiskAdditionalInfo['thickness'],
-                                    gridUnit=betDiskAdditionalInfo['gridUnit'],
-                                    chordRef=betDiskAdditionalInfo['chordRef'],
-                                    nLoadingNodes=betDiskAdditionalInfo['nLoadingNodes'])
-
+        inputFile = os.path.join(here, 'data/C81/xv15_geometry.csv')
+        betFlow360 = interface.generateC81BETJSON(inputFile, betDiskAdditionalInfo)
+        # flow360BaseJsonFile = os.path.join(here,'flow360_XV15_BET_Template.json')
+        # with open(flow360BaseJsonFile) as fh:
+        #     flow360Dict = json.load(fh)
+        #
+        # flow360Dict['BETDisks'] = [betFlow360]
+        # # Append the Flow360 data to the Flow360 input JSON
+        #
+        # # dump the completed Flow360 dictionary to a json file
+        # with open('xv15_c81_translated_BET.json', 'w') as fh:
+        #     json.dump(flow360Dict, fh, indent=4)
+        #
+        with open('betFlow360.json', 'w') as fh:
+            json.dump(betFlow360, fh, indent=4)
 
 
         with open(os.path.join(here, 'ref/c81Test.json')) as fh:

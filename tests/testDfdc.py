@@ -16,18 +16,32 @@ class AdvancedTestSuite(unittest.TestCase):
 
 
         betDiskAdditionalInfo = {"meshUnit": 1,
-                                 "centerOfRotation": [10, 0, 0],
-                                 "rotationDirectionRule": "rightHand",
+                                 "centerOfRotation": [0, 0, 0],
+                                 "rotationDirectionRule": "leftHand",
                                  "axisOfRotation": [0, 0, 1],
-                                 "thickness": 0.05,
-                                 "chordRef": 1,
+                                 "thickness": 15,
+                                 "chordRef": 14,
                                  "nLoadingNodes": 20}
 
-        inputFile = os.path.join(here, 'data/dfdcTest.case')
+        inputFile = os.path.join(here, 'data/dfdc_xv15_twist0.case')
         betFlow360 = interface.generateXrotorBETJSON(inputFile, betDiskAdditionalInfo)
 
-        betFlow360['tipGap'] = 'inf'
-        betFlow360['initialBladeDirection'] = [1, 0, 0]
+        # betFlow360['tipGap'] = 'inf'
+        # betFlow360['initialBladeDirection'] = [1, 0, 0]
+        # flow360BaseJsonFile = os.path.join(here,'flow360_XV15_BET_Template.json')
+        # with open(flow360BaseJsonFile) as fh:
+        #     flow360Dict = json.load(fh)
+        #
+        # flow360Dict['BETDisks'] = [betFlow360]
+        # # Append the Flow360 data to the Flow360 input JSON
+        #
+        # # dump the completed Flow360 dictionary to a json file
+        # with open('xv15_dfdc_translated_BET.json', 'w') as fh:
+        #     json.dump(flow360Dict, fh, indent=4)
+        #
+        #
+        # with open('betFlow360.json', 'w') as fh:
+        #     json.dump(betFlow360, fh, indent=4)
 
         with open('betFlow360.json', 'w') as fh:
             json.dump(betFlow360, fh, indent=4)
