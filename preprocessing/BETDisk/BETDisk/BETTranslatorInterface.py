@@ -76,6 +76,8 @@ def  readInXfoilPolar(polarFile):
         cls[i]=float(clInterp(alpha))
         cds[i] =float(cdInterp(alpha))
 
+    xfoilFid.close()
+
     return alphas, clMachNums[0], cls, cds
 ########################################################################################################################
 def blendPolarstoFlatplate(clAlphas, clMachNums, clValues, cdValues):
@@ -285,7 +287,7 @@ def readInC81Polarcsv(polarFile):
     # We also have the moment information in a c81 file but we ignore that for our purposes.
     if clAlphas[0] != -180 and clAlphas[-1] != 180:  # if we don't have polars for the full circle of alpha angles.
         blendPolarstoFlatplate(clAlphas, clMachNums, clValues, cdValues)
-
+    c81fid.close()
     return clAlphas, clMachNums, clValues, cdValues
 
 ###############################################################################################################
