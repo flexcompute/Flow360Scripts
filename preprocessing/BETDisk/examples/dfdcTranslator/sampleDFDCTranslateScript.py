@@ -38,6 +38,7 @@ def getBetDiskParams(diskIdx):
                  "rotationDirectionRule": "leftHand",
                  "axisOfRotation": [0, 0, 1],
                  "thickness": 15,
+                 "omega": 0.0046,
                  "chordRef": 14,
                  "nLoadingNodes": 20},
                   # Now we define the 2ND betDisk.
@@ -46,6 +47,7 @@ def getBetDiskParams(diskIdx):
                    "rotationDirectionRule": "rightHand",
                    "axisOfRotation": [0, 0, 1],
                    "thickness": 0.05,
+                   "omega": 0.0046,
                    "chordRef": 1,
                    "nLoadingNodes": 20}]
 
