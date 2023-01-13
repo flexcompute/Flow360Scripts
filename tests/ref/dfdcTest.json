@@ -10,10 +10,10 @@
         0,
         1
     ],
+    "omega": 0.0046,
     "thickness": 15,
     "chordRef": 14,
     "nLoadingNodes": 20,
-    "omega": 0.004592971715774551,
     "numberOfBlades": 3,
     "radius": 150.0,
     "twists": [

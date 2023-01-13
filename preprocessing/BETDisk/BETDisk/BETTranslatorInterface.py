@@ -642,7 +642,7 @@ def readDFDCFile(dfdcFileName):
         values = fid.readline().split()
         check_num_values(values, 4)
         dfdcInputDict['rho'] = float(values[0])
-        dfdcInputDict['vso'] = float(values[1])
+        #dfdcInputDict['vso'] = float(values[1])  # No longer needed as per discussion with Maciej and CJ on 1/13/2023
 
         for i in range(7):
             fid.readline()  # skip next 8 lines.
@@ -833,7 +833,7 @@ def readXROTORFile(xrotorFileName):
         values = fid.readline().split()
         check_num_values(values, 4)
 
-        xrotorInputDict['vso'] = float(values[1])
+        #xrotorInputDict['vso'] = float(values[1]) # No longer needed as per discussion with Maciej and CJ on 1/13/2023
 
         comment_line = fid.readline().upper().split()
         check_comment(comment_line, 5)
@@ -1333,8 +1333,7 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
     xrotorDict = readXROTORFile(xrotorFileName)
 
     # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
-
-    betDisk['omega'] = xrotorDict['omegaDim'] * betDisk["meshUnit"] / xrotorDict['vso']  # check this
+    # betDisk['omega'] = xrotorDict['omegaDim'] * betDisk["meshUnit"] / xrotorDict['vso']  # No longer returned as per discussion with MAciej and CJ on 1/13/2023
     betDisk['numberOfBlades'] = xrotorDict['nBlades']
     betDisk['radius'] = xrotorDict['rad'] / betDisk["meshUnit"]
     betDisk['twists'] = generateTwists(xrotorDict, betDisk["meshUnit"])

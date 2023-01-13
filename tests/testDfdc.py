@@ -17,6 +17,7 @@ class AdvancedTestSuite(unittest.TestCase):
                                  "centerOfRotation": [0, 0, 0],
                                  "rotationDirectionRule": "leftHand",
                                  "axisOfRotation": [0, 0, 1],
+                                 "omega": 0.0046,
                                  "thickness": 15,
                                  "chordRef": 14,
                                  "nLoadingNodes": 20}
