@@ -17,49 +17,49 @@ AERO
      5
 !  Xisection
   0.09
-  !       A0deg        dCLdA        CLmax         CLmin
+!       A0deg        dCLdA        CLmax         CLmin
     -6.5           4.000       1.2500     -0.0000
-  !  dCLdAstall     dCLstall      Cmconst         Mcrit
+!  dCLdAstall     dCLstall      Cmconst         Mcrit
     0.10000      0.10000     -0.10000      0.75000
-  !       CDmin      CLCDmin     dCDdCL^2
+!       CDmin      CLCDmin     dCDdCL^2
     0.075000E-01  0.00000      0.40000E-02
-  !       REref        REexp
+!       REref        REexp
     0.30000E+06 -0.70000
     0.17
-  !       A0deg        dCLdA        CLmax         CLmin
+!       A0deg        dCLdA        CLmax         CLmin
           -6.0         6.0       1.300     -0.55000
-  !  dCLdAstall     dCLstall      Cmconst         Mcrit
+!  dCLdAstall     dCLstall      Cmconst         Mcrit
       0.10000      0.10000     -0.10000      0.75000
-  !       CDmin      CLCDmin     dCDdCL^2
+!       CDmin      CLCDmin     dCDdCL^2
       0.075000E-01  0.10000      0.40000E-02
-  !       REref        REexp
+!       REref        REexp
       0.30000E+06 -0.70000
      0.51
-  !       A0deg        dCLdA        CLmax         CLmin
+!       A0deg        dCLdA        CLmax         CLmin
      -1.0       6.00                1.400     -1.4000
-  !  dCLdAstall     dCLstall      Cmconst         Mcrit
+!  dCLdAstall     dCLstall      Cmconst         Mcrit
        0.10000      0.10000     -0.10000      0.75000
-  !       CDmin      CLCDmin     dCDdCL^2
+!       CDmin      CLCDmin     dCDdCL^2
        0.05000E-01  0.10000      0.40000E-02
-  !       REref        REexp
+!       REref        REexp
        0.30000E+06 -0.70000
     0.8
-  !       A0deg        dCLdA        CLmax         CLmin
+!       A0deg        dCLdA        CLmax         CLmin
          -1.0      6.0       1.600     -1.500
-  !  dCLdAstall     dCLstall      Cmconst         Mcrit
+!  dCLdAstall     dCLstall      Cmconst         Mcrit
            0.10000      0.10000     -0.10000      0.75000
-  !       CDmin      CLCDmin     dCDdCL^2
+!       CDmin      CLCDmin     dCDdCL^2
            0.03000E-01  0.10000      0.40000E-02
-  !       REref        REexp
+!       REref        REexp
            0.30000E+06 -0.70000
     1.0
-  !       A0deg        dCLdA        CLmax         CLmin
+!       A0deg        dCLdA        CLmax         CLmin
             -1          6.0           1.0     -1.8000
-  !  dCLdAstall     dCLstall      Cmconst         Mcrit
+!  dCLdAstall     dCLstall      Cmconst         Mcrit
         0.10000      0.10000     -0.10000      0.75000
-  !       CDmin      CLCDmin     dCDdCL^2
+!       CDmin      CLCDmin     dCDdCL^2
           0.04000E-01  0.10000      0.40000E-02
-  !       REref        REexp
+!       REref        REexp
         0.30000E+06 -0.70000
 ENDAERO
 
