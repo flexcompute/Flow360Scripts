@@ -635,7 +635,7 @@ def readDFDCFile(dfdcFileName):
         check_comment(comment_line, linenum,  4)
         values = fid.readline().split()
         linenum += 1
-        check_num_values(values, linenum, 3)
+        # we don't want ot apply the check to this line b/c we could have a varying number of RPMs
 
         dfdcInputDict['vel'] = float(values[1])
         dfdcInputDict['RPM'] = float(values[2])
