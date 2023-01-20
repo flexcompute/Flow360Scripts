@@ -29,6 +29,9 @@ class AdvancedTestSuite(unittest.TestCase):
         with open(os.path.join(here, 'ref/xrotorTest.json')) as fh:
             refbetFlow360 = json.load(fh)
 
+
+
+
         self.maxDiff = None
         utils.assertDeepAlmostEqual(self, betFlow360, refbetFlow360, places=14)
 

@@ -532,7 +532,7 @@ def generateC81BETJSON(geometryFileName,betDisk):
     return betDisk
 
 ########################################################################################################################
-def check_comment(comment_line, numelts):
+def check_comment(comment_line, linenum,  numelts):
     """
     This function is used when reading an XROTOR input file to make sure that what should be comments really are
 
@@ -546,11 +546,11 @@ def check_comment(comment_line, numelts):
 
     # otherwise make sure that we are on a comment line
     if not comment_line[0] == '!' and not (len(comment_line) == numelts):
-        raise ValueError(f'wrong format for line: {comment_line}')
+        raise ValueError(f'wrong format for line #%i: {comment_line}'%(linenum))
 
 
 ########################################################################################################################
-def check_num_values(values_list, numelts):
+def check_num_values(values_list, linenum,  numelts):
     """
     This function is used to make sure we have the expected number of inputs in a given line
 
@@ -562,8 +562,7 @@ def check_num_values(values_list, numelts):
     """
     # make sure that we have the expected number of values.
     if not (len(values_list) == numelts):
-        print('wrong number of items for line:', values_list)
-        raise ValueError(f'wrong number of items for line: {values_list}')
+        raise ValueError(f'wrong number of items for line #%i: {values_list}. We were expecting %i numbers and got %i'%(linenum, len(values_list), numelts))
 
 ########################################################################################################################
 def readDFDCFile(dfdcFileName):
@@ -616,8 +615,8 @@ def readDFDCFile(dfdcFileName):
     nGeomStations: number of geometric stations where the blade geometry is defined at
     nBlades: number of blades on the propeller
     Each geometry station will have the following parameters:
-      r/R: station r/R
-      c/R: local chord divided by radius
+      r: station r in meters
+      c: local chord in meters
       beta0deg: Twist relative to disk plane. ie symmetric 2D section at beta0Deg would create 0 thrust, more beta0deg means more local angle of attack for the blade
       Ubody: (unused) Nacelle perturbation axial  velocity
 
@@ -627,30 +626,38 @@ def readDFDCFile(dfdcFileName):
 
         # read in lines 5->8 which contains the run case information
         dfdcInputDict = {}
-        for i in range (4): fid.readline()  # we have 4 blank lines
-
+        linenum=0 # counter needed to report which line the error is on.
+        for i in range (4):
+            fid.readline()  # we have 4 blank lines
+            linenum+=1
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
+        linenum += 1
+        check_comment(comment_line, linenum,  4)
         values = fid.readline().split()
-        check_num_values(values, 4)
+        linenum += 1
+        check_num_values(values, linenum, 3)
 
         dfdcInputDict['vel'] = float(values[1])
         dfdcInputDict['RPM'] = float(values[2])
 
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
+        linenum += 1
+        check_comment(comment_line, linenum,  5)
         values = fid.readline().split()
-        check_num_values(values, 4)
+        linenum += 1
+        check_num_values(values, linenum, 4)
         dfdcInputDict['rho'] = float(values[0])
-        #dfdcInputDict['vso'] = float(values[1])  # No longer needed as per discussion with Maciej and CJ on 1/13/2023
 
         for i in range(7):
             fid.readline()  # skip next 8 lines.
+            linenum += 1
 
         comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 2)  # 2 because line should have 2 components
+        linenum += 1
+        check_comment(comment_line, linenum,  2)  # 2 because line should have 2 components
         values = fid.readline().split()
-        check_num_values(values, 1)  # we should have 1 value.
+        linenum += 1
+        check_num_values(values, linenum, 1)  # we should have 1 value.
         dfdcInputDict['nAeroSections'] = int(values[0])
         # define the lists with the right number of elements
         dfdcInputDict['rRstations'] = [0] * dfdcInputDict['nAeroSections']
@@ -666,67 +673,81 @@ def readDFDCFile(dfdcFileName):
         dfdcInputDict['dcddcl2'] = [0] * dfdcInputDict['nAeroSections']
 
         comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 2)  # 2 because line should have 2 components
+        linenum += 1
+        check_comment(comment_line, linenum,  2)  # 2 because line should have 2 components
         for i in range(dfdcInputDict['nAeroSections']):  # iterate over all the sections
 
             values = fid.readline().split()
-            check_num_values(values, 1)  # we should have 1 value.
+            linenum += 1
+            check_num_values(values, linenum, 1)  # we should have 1 value.
             dfdcInputDict['rRstations'][i] = float(values[0])  # aka xisection
 
             comment_line = fid.readline().upper().split()  # convert all to upper case
-            check_comment(comment_line, 5)  # 5 because line should have 5 components
+            linenum += 1
+            check_comment(comment_line, linenum,  5)  # 5 because line should have 5 components
             values = fid.readline().split()
-            check_num_values(values, 4)  # we should have 4 value.
+            linenum += 1
+            check_num_values(values, linenum, 4)  # we should have 4 value.
             dfdcInputDict['a0deg'][i] = float(values[0])  # WARNING, ao is in deg
             dfdcInputDict['dclda'][i] = float(values[1])  # but dclda is in cl per radians
             dfdcInputDict['clmax'][i] = float(values[2])
             dfdcInputDict['clmin'][i] = float(values[3])
 
             comment_line = fid.readline().upper().split()  # convert all to upper case
-            check_comment(comment_line, 5)  # 5 because line should have 5 components
+            linenum += 1
+            check_comment(comment_line, linenum,  5)  # 5 because line should have 5 components
             values = fid.readline().split()
-            check_num_values(values, 4)  # we should have 4 value.
+            linenum += 1
+            check_num_values(values, linenum, 4)  # we should have 4 value.
             dfdcInputDict['dcldastall'][i] = float(values[0])
             dfdcInputDict['dclstall'][i] = float(values[1])
             dfdcInputDict['mcrit'][i] = float(values[3])
 
             comment_line = fid.readline().upper().split()  # convert all to upper case
-            check_comment(comment_line, 4)  # 4 because line should have 4 components
+            linenum += 1
+            check_comment(comment_line, linenum,  4)  # 4 because line should have 4 components
             values = fid.readline().split()
-            check_num_values(values, 3)  # we should have 3 value.
+            linenum += 1
+            check_num_values(values, linenum, 3)  # we should have 3 value.
             dfdcInputDict['cdmin'][i] = float(values[0])
             dfdcInputDict['clcdmin'][i] = float(values[1])
             dfdcInputDict['dcddcl2'][i] = float(values[2])
 
             for i in range(2):
                 fid.readline()  # skip next 3 lines.
+                linenum += 1
 
         for i in range(3):
             fid.readline()  # skip next 3 lines.
-
+            linenum += 1
         # Now we are done with the various aero sections and we start looking at blade geometry definitions
         comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 3)  # 3 because line should have 3 components
+        linenum += 1
+        check_comment(comment_line, linenum,  3)  # 3 because line should have 3 components
         values = fid.readline().split()
-        check_num_values(values, 3)  # we should have 3 values.
-        dfdcInputDict['rad'] = float(values[0])
+        linenum += 1
+        check_num_values(values, linenum, 3)  # we should have 3 values.
         dfdcInputDict['nBlades'] = int(values[1])
         comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 2)
+        linenum += 1
+        check_comment(comment_line, linenum,  2)
         values = fid.readline().split()
-        check_num_values(values, 1)
+        linenum += 1
+        check_num_values(values, linenum, 1)
         dfdcInputDict['nGeomStations'] = int(values[0])
         # 2nd value on that  line is the number of blades
         dfdcInputDict['rRGeom'] = [0] * dfdcInputDict['nGeomStations']
         dfdcInputDict['cRGeom'] = [0] * dfdcInputDict['nGeomStations']
         dfdcInputDict['beta0Deg'] = [0] * dfdcInputDict['nGeomStations']
         comment_line = fid.readline().upper().split()  # convert all to upper case
-        check_comment(comment_line, 4)  # 4 because line should have 4 components
+        linenum += 1
+        check_comment(comment_line, linenum,  4)  # 4 because line should have 4 components
         for i in range(dfdcInputDict['nGeomStations']):  # iterate over all the geometry stations
             values = fid.readline().split()
-            check_num_values(values, 3)  # we should have 3 values.
-            dfdcInputDict['rRGeom'][i] = float(values[0])  # not quite true b/c we need to multiply by radius but I need a place to store the r locations
-            dfdcInputDict['cRGeom'][i] = float(values[1])  # not quite true b/c we need to multiply by radius but I need a place to store the chord dimensions
+            linenum += 1
+            check_num_values(values, linenum, 3)  # we should have 3 values.
+            dfdcInputDict['rRGeom'][i] = float(values[0])  # key string is not quite true b/c it is the dimensional radius  but I need a place to store the r locations that matches the Xrotor format
+            dfdcInputDict['cRGeom'][i] = float(values[1])  # key string is not quite true b/c it is the dimensional chord but I need a place to store the chord dimensions that matches the Xrotor format
             dfdcInputDict['beta0Deg'][i] = float(values[2])  # twist values
         if dfdcInputDict['rRGeom'][0] != 0:  # As per discussion in
             # https://enreal.slack.com/archives/C01PFAJ76FL/p1643652853237749?thread_ts=1643413462.002919&cid=C01PFAJ76FL
@@ -742,9 +763,10 @@ def readDFDCFile(dfdcFileName):
     #     dfdcInputDict['rRGeom'][i] = dfdcInputDict['rRGeom'][i] * dfdcInputDict['rad']  # aka r/R location
     #     dfdcInputDict['cRGeom'][i] = dfdcInputDict['cRGeom'][i] * dfdcInputDict['rad']  # aka r/R location
 
+    dfdcInputDict['rad'] = dfdcInputDict['rRGeom'][-1] # radius in m is the last value in the r list
     # calculate Extra values and add them  to the dict
     dfdcInputDict['omegaDim'] = dfdcInputDict['RPM'] * pi / 30
-
+    dfdcInputDict['inputType'] = 'dfdc' # we need to store which file format we are using to handle the r vs r/R situation correctly.
     # Now we are done, we have all the data we need.
     return dfdcInputDict
 
@@ -814,9 +836,10 @@ def readXROTORFile(xrotorFileName):
 
     try:
         fid = open(xrotorFileName, 'r')
-
+        linenum=0 # counter needed to know which line we are on for error reporting
         # Top line in the file should start with the XROTOR keywords.
         topLine=fid.readline()
+        linenum+=1
         if topLine.find('DFDC') == 0:  # If we are actually doing a DFDC file instead of Xrotor
             fid.close()  # close the file b/c we will reopen it in readDFDCFile
             return readDFDCFile(xrotorFileName)
@@ -826,29 +849,37 @@ def readXROTORFile(xrotorFileName):
 
         # read in lines 2->8 which contains the run case information
         xrotorInputDict = {}
+
         fid.readline()
+        linenum += 1
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
+        linenum += 1
+        check_comment(comment_line, linenum,  5)
 
         values = fid.readline().split()
-        check_num_values(values, 4)
-
-        #xrotorInputDict['vso'] = float(values[1]) # No longer needed as per discussion with Maciej and CJ on 1/13/2023
+        linenum += 1
+        check_num_values(values, linenum, 4)
 
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
+        linenum += 1
+        check_comment(comment_line, linenum,  5)
         values = fid.readline().split()
-        check_num_values(values, 4)
+        linenum += 1
+        check_num_values(values, linenum, 4)
         xrotorInputDict['rad'] = float(values[0])
         xrotorInputDict['vel'] = float(values[1])
         xrotorInputDict['adv'] = float(values[2])
 
         fid.readline()
+        linenum += 1
         fid.readline()
+        linenum += 1
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 2)
+        linenum += 1
+        check_comment(comment_line, linenum,  2)
         values = fid.readline().split()
-        check_num_values(values, 1)
+        linenum += 1
+        check_num_values(values, linenum, 1)
 
         nAeroSections = int(values[0])
         # Initialize the dictionary with all the information to re-create the polars at each defining aero section.
@@ -867,50 +898,63 @@ def readXROTORFile(xrotorFileName):
 
         for i in range(nAeroSections):  # loop ever each aero section and populate the required variables.
             comment_line = fid.readline().upper().split()
-            check_comment(comment_line, 2)
+            linenum += 1
+            check_comment(comment_line, linenum,  2)
             values = fid.readline().split()
-            check_num_values(values, 1)
+            linenum += 1
+            check_num_values(values, linenum, 1)
             xrotorInputDict['rRstations'][i] = float(values[0])
 
             comment_line = fid.readline().upper().split()
-            check_comment(comment_line, 5)
+            linenum += 1
+            check_comment(comment_line, linenum,  5)
             values = fid.readline().split()
-            check_num_values(values, 4)
+            linenum += 1
+            check_num_values(values, linenum, 4)
             xrotorInputDict['a0deg'][i] = float(values[0])
             xrotorInputDict['dclda'][i] = float(values[1])
             xrotorInputDict['clmax'][i] = float(values[2])
             xrotorInputDict['clmin'][i] = float(values[3])
 
             comment_line = fid.readline().upper().split()
-            check_comment(comment_line, 5)
+            linenum += 1
+            check_comment(comment_line, linenum,  5)
             values = fid.readline().split()
-            check_num_values(values, 4)
+            linenum += 1
+            check_num_values(values, linenum, 4)
             xrotorInputDict['dcldastall'][i] = float(values[0])
             xrotorInputDict['dclstall'][i] = float(values[1])
             xrotorInputDict['mcrit'][i] = float(values[3])
 
             comment_line = fid.readline().upper().split()
-            check_comment(comment_line, 4)
+            linenum += 1
+            check_comment(comment_line, linenum,  4)
             values = fid.readline().split()
-            check_num_values(values, 3)
+            linenum += 1
+            check_num_values(values, linenum, 3)
             xrotorInputDict['cdmin'][i] = float(values[0])
             xrotorInputDict['clcdmin'][i] = float(values[1])
             xrotorInputDict['dcddcl2'][i] = float(values[2])
 
             comment_line = fid.readline().upper().split()
-            check_comment(comment_line, 3)
+            linenum += 1
+            check_comment(comment_line, linenum,  3)
             values = fid.readline().split()
-
+            linenum += 1
         # skip the duct information
         fid.readline()
+        linenum += 1
         fid.readline()
+        linenum += 1
 
         # Now we are done with the various aero sections and we start
         # looking at blade geometry definitions
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 3)
+        linenum += 1
+        check_comment(comment_line, linenum,  3)
         values = fid.readline().split()
-        check_num_values(values, 2)
+        linenum += 1
+        check_num_values(values, linenum, 2)
 
         nGeomStations = int(values[0])
         xrotorInputDict['nGeomStations'] = nGeomStations
@@ -920,19 +964,21 @@ def readXROTORFile(xrotorFileName):
         xrotorInputDict['beta0Deg'] = [0] * nGeomStations
 
         comment_line = fid.readline().upper().split()
-        check_comment(comment_line, 5)
+        linenum += 1
+        check_comment(comment_line, linenum,  5)
 
         # iterate over all the geometry stations
         for i in range(nGeomStations):
 
             values = fid.readline().split()
-            check_num_values(values, 4)
+            linenum += 1
+            check_num_values(values, linenum, 4)
             xrotorInputDict['rRGeom'][i] = float(values[0])
             xrotorInputDict['cRGeom'][i] = float(values[1])
             xrotorInputDict['beta0Deg'][i] = float(values[2])
 
     finally: # We are done reading
-        fid.close()
+            fid.close()
 
     # Set the twist at the root to be 90 so that it is continuous on
     # either side of the origin. I.e Across blades' root. Also set
@@ -947,7 +993,7 @@ def readXROTORFile(xrotorFileName):
     xrotorInputDict['omegaDim'] = \
         xrotorInputDict['vel'] / (xrotorInputDict['adv'] * xrotorInputDict['rad'])
     xrotorInputDict['RPM'] = xrotorInputDict['omegaDim'] * 30 / pi
-
+    xrotorInputDict['inputType'] = 'xrotor'  # we need to store which file format we are using to handle the r vs r/R situation correctly.
     return xrotorInputDict
 
 def floatRange(start, stop, step=1):
@@ -956,7 +1002,7 @@ def floatRange(start, stop, step=1):
 ########################################################################################################################
 def generateTwists(xrotorDict, meshUnit):
     """
-    Transform the Xrotor format blade twists distribution into the Flow360 standard.
+    Transform the Xrotor format blade twists distribution into the Flow360 standard.z
 
     Attributes
     ----------
@@ -966,9 +1012,14 @@ def generateTwists(xrotorDict, meshUnit):
     """
     # generate the twists vector required from the BET input
     twistVec = []
+    if xrotorDict['inputType'] == 'xrotor':
+        multiplier= xrotorDict['rad'] # X rotor uses r/R we need to convert that to r in mesh units
+    elif xrotorDict['inputType'] == 'dfdc':
+        multiplier=1.0 # dfdc is already in meters so only need to convert it ot mesh units.
+
     for i in range(xrotorDict['nGeomStations']):
         # dimensional radius we are at in grid unit
-        r = xrotorDict['rRGeom'][i] * xrotorDict['rad'] / meshUnit
+        r = xrotorDict['rRGeom'][i] * multiplier / meshUnit
         twist = xrotorDict['beta0Deg'][i]
         twistVec.append({'radius': r, 'twist': twist})
 
@@ -988,9 +1039,13 @@ def generateChords(xrotorDict, meshUnit):
     """
     # generate the dimensional chord vector required from the BET input
     chordVec = []
+    if xrotorDict['inputType'] == 'xrotor':
+        multiplier= xrotorDict['rad'] # X rotor uses r/R we need to convert that to r in mesh units
+    elif xrotorDict['inputType'] == 'dfdc':
+        multiplier=1.0 # dfdc is already in meters so only need to convert it ot mesh units.
     for i in range(xrotorDict['nGeomStations']):
-        r = xrotorDict['rRGeom'][i] * xrotorDict['rad'] / meshUnit
-        chord = xrotorDict['cRGeom'][i] * xrotorDict['rad'] / meshUnit
+        r = xrotorDict['rRGeom'][i] * multiplier / meshUnit
+        chord = xrotorDict['cRGeom'][i] * multiplier / meshUnit
         chordVec.append({'radius': r, 'chord': chord})
 
     return chordVec
@@ -1332,8 +1387,6 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
 
     xrotorDict = readXROTORFile(xrotorFileName)
 
-    # xrotorInflowMach = xrotorDict['vel'] / xrotorDict['vso']
-    # betDisk['omega'] = xrotorDict['omegaDim'] * betDisk["meshUnit"] / xrotorDict['vso']  # No longer returned as per discussion with MAciej and CJ on 1/13/2023
     betDisk['numberOfBlades'] = xrotorDict['nBlades']
     betDisk['radius'] = xrotorDict['rad'] / betDisk["meshUnit"]
     betDisk['twists'] = generateTwists(xrotorDict, betDisk["meshUnit"])

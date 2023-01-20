@@ -33,7 +33,10 @@ def getBetDiskParams(diskIdx):
     # For this Example we will assign them manually so you see what it needs to look like:
     # All these parameters are explained in the Flow360 documentation under
     # https://docs.flexcompute.com/projects/flow360/en/latest/solverConfiguration/solverConfiguration.html?highlight=initialBladeDirection#betdisks-list
-    betDiskDict = [{"meshUnit": 1,
+
+    # mesh is in inches so meshUnit needs to be 0.0254m per in ( i.e. per mesh unit). DFDC inputs are in metric system.
+    # Here we are using a mesh in inches to show how to convert using the meshUnit variable.
+    betDiskDict = [{"meshUnit": 0.0254,
                  "centerOfRotation": [0, 0, 0],
                  "rotationDirectionRule": "leftHand",
                  "axisOfRotation": [0, 0, 1],
@@ -42,13 +45,13 @@ def getBetDiskParams(diskIdx):
                  "chordRef": 14,
                  "nLoadingNodes": 20},
                   # Now we define the 2ND betDisk.
-                  {"meshUnit": 1,
+                  {"meshUnit": 0.0254,
                    "centerOfRotation": [10, 0, 0],
                    "rotationDirectionRule": "rightHand",
                    "axisOfRotation": [0, 0, 1],
-                   "thickness": 0.05,
+                   "thickness": 15,
                    "omega": 0.0046,
-                   "chordRef": 1,
+                   "chordRef": 14,
                    "nLoadingNodes": 20}]
 
     return betDiskDict[diskIdx] # Since we are doing one BETdisk at a time, return only the betDisk information relevant
@@ -83,8 +86,9 @@ def main():
 
         # DFDC and Xrotor come from the same family of CFD codes. They are both written by Mark Drela over at MIT.
         # we can use the same translator for both DFDC and Xrotor.
+        # BEWARE: There is however a difference in the way the chord or each span wise location is defined.
 
-        dfdcInputDicts[diskIdx] = generateXrotorBETJSON(dfdcFilePath, betdiskParams)
+        dfdcInputDicts[diskIdx] = generateXrotorBETJSON(dfdcFilePath, betdiskParams,)
 
     # now we read in the Flow360 input JSON file we will append the BET information to. This will add  numBetDisks
     # to this Flow360 JSON file.
