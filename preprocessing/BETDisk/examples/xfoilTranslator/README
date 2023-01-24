@@ -1,0 +1,12 @@
+This directory contains an example script showing how to run the Xfoil => Flow 360 Bet disk translator.
+
+To run simply type  "python3 sampleXfoilTranslateScript.py"
+
+In this directory we also have files called:
+secNXfoilPolarMN.dat where N are various numbers. These are sample Xfoil output files that will be used as the polars for the various section number at various mach numbers. 
+
+We laso have files called xv15_geometry_xfoil_translatorDiskN.csv. These contain the list of which polars to use and what the blade geometry definition looks like (i.e. chord and twist vs span).
+
+In the examples directory above, we also have the flow360_XV15_BET_Template.json. It is a sample Flow360 input JSON file to which we will add the BET disk information.
+
+In order to run a valid BET disk simulation using Xfoil polars as inputs. Care must be taken to make sure the polars are in the correct order. As in, the list of polars in xv15_geometry_xfoil_translatorDiskN.csv must match the expected 2D section polars for that expected section. If you have N sections with M mach numbers, that is N*M polar files that need to be kept track of and labeled correctly.

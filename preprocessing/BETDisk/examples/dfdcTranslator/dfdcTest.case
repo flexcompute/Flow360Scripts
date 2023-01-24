@@ -2,8 +2,8 @@ DFDC Version 0.70E+03
 vb block 1 c 25 HP SLS
 
 OPER
-!   Vinf         Vref         RPM1         RPM2
-   0.000       10.000       3000.0       0.0000
+!   Vinf         Vref         RPM1
+   0.000       10.000       3000.0
 !   Rho          Vso          Rmu          Alt
    1.225       200      0.17791E-04  0.30000E-01
 !  XDwake             Nwake

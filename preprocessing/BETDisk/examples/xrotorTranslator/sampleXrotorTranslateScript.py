@@ -18,6 +18,7 @@ import sys
 import json
 import os
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -32,18 +33,23 @@ def getBetDiskParams(diskIdx):
     # For this Example we will assign them manually so you see what it needs to look like:
     # All these parameters are explained in the Flow360 documentation under
     # https://docs.flexcompute.com/projects/flow360/en/latest/solverConfiguration/solverConfiguration.html?highlight=initialBladeDirection#betdisks-list
-    betDiskDict = [{"meshUnit": 1,
+
+    #mesh is in inches so meshUnit needs to be 0.0254m per in ( i.e. per mesh unit).  Xrotor inputs are in metric system.
+    # Here we are using a mesh in inches to show how to convert using the meshUnit variable.
+    betDiskDict = [{"meshUnit": 0.0254,
                  "centerOfRotation": [0, 0, 0],
                  "rotationDirectionRule": "leftHand",
                  "axisOfRotation": [0, 0, 1],
+                "omega": 0.0046,
                  "thickness": 15,
                  "chordRef": 14,
                  "nLoadingNodes": 20},
                   # Now we define the 2ND betDisk.
-                  {"meshUnit": 1,
+                  {"meshUnit": 0.0254,
                    "centerOfRotation": [10, 0, 0],
                    "rotationDirectionRule": "leftHand",
                    "axisOfRotation": [0, 0, 1],
+                   "omega": 0.0046,
                    "thickness": 15,
                    "chordRef": 14,
                    "nLoadingNodes": 20}]

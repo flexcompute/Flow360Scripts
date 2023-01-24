@@ -46,7 +46,7 @@
   "turbulenceModelSolver": {
       "modelType": "None",
       "tolerance": 1e-08,
-      "linearIterations": 15,
+      "linearIterations": 20,
       "kappaMUSCL": -1,
       "DDES": false,
       "rotationCorrection": false,
