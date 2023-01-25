@@ -1,8 +1,4 @@
-This directory contains an example script showing how to run the Xrotor => Flow 360 Bet disk translator.
-
-To run simply type  "python3 sampleXrotorTranslateScript.py"
-
-In this directory we also have files called:
+In this directory we have files called:
 xv15_like_twist0.xrotor and ecruzer.prop which are sample Xrotor input files
 
 In the examples directory above, we also have the flow360_XV15_BET_Template.json. It is a sample Flow360 input JSON file to which we will add the BET disk information.

@@ -1,10 +1,21 @@
 # Flow360Scripts
 
 
-### install 
+## BET Translators
 
-`python setup.py install`
+See [`examples/BET/README.md`](examples/BET/README.md)
 
-You can also install it using:
 
-`python setup.py develop`
+# Developers
+
+Run tests:
+
+```bash
+cd tests
+python -m unittest
+```
+
+deploy
+```
+poetry lock
+```

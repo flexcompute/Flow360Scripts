@@ -18,14 +18,12 @@ In this example, all the required values are hard coded in this sample script.
 
 Example
 -------
- $   python3 sampleC81TranslateScript.py
+ $   python3 C81toFlow360BET.py
 
 """
-import sys
 import json
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETDisk.BETTranslatorInterface import generateC81BETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -62,7 +60,7 @@ def main():
     # this example will show you how to create a BET disk input JSON file with 2 BET disks.
 
     # path to the geometry input file(s) you would like to use.
-    geometryFilePathList = ['Xv15_geometry.csv', 'Xv15_geometry.csv']# Each BET disk will get its own geometry and polars definition.
+    geometryFilePathList = ['data/c81/Xv15_geometry.csv', 'data/c81/Xv15_geometry.csv']# Each BET disk will get its own geometry and polars definition.
     geometryFilePathList = [os.path.join(here, file) for file in geometryFilePathList]
     # # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
     numBetDisks = len(geometryFilePathList) # number of disks is number of geometry files defined above.
@@ -70,7 +68,7 @@ def main():
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
     # activated.
-    flow360BaseJsonFile = os.path.join(here, '../flow360_XV15_BET_Template.json')
+    flow360BaseJsonFile = os.path.join(here, 'flow360_XV15_BET_Template.json')
 
     c81InputDicts = [{} for i in range(numBetDisks)]  # This is where we will store the BET disk information once we have it.
 
@@ -89,12 +87,15 @@ def main():
     with open (flow360BaseJsonFile) as fh:
         flow360Dict  = json.load(fh)
 
-    flow360Dict['BETDisks'] = c81InputDicts
     # Append the Flow360 data to the Flow360 input JSON
+    flow360Dict['BETDisks'] = c81InputDicts
 
     # dump the completed Flow360 dictionary to a json file
+    outputFilename = 'xv15_c81_translated_BET.json'
     with open('xv15_c81_translated_BET.json', 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
+        print('File saved:', outputFilename)
+
 ########################################################################################################################
 if __name__ == '__main__':
     # if run on its own, then just run the main() function

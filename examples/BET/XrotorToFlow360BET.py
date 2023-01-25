@@ -11,14 +11,12 @@ In this example, all the required values are hard coded in this sample script.
 
 Example
 -------
- $   python3 sampleXrotorTranslateScript.py
+ $   python3 XrotorToFlow360BET.py
 
 """
-import sys
 import json
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -64,8 +62,7 @@ def main():
     # this example will show you how to create a BET disk input JSON file with 2 BET disks.
 
     # path to the Xrotor input file you would like to use.
-    xrotorFilePathList = ['xv15_like_twist0.xrotor', 'ecruzer.prop']  # Each BET disk will get its own geometry and polars definition.
-    xrotorFilePathList = ['xv15_like_twist0.xrotor','xv15_like_twist0.xrotor']  # Each BET disk will get its own geometry and polars definition.
+    xrotorFilePathList = ['data/xrotor/xv15_like_twist0.xrotor','data/xrotor/xv15_like_twist0.xrotor']  # Each BET disk will get its own geometry and polars definition.
     xrotorFilePathList = [os.path.join(here, file) for file in xrotorFilePathList]
     # The number of BET disks defined in your Flow360Json file is the number of elements in your xRotorFilePathList
     numBetDisks = len(xrotorFilePathList)  # number of disks is length of the filename list
@@ -73,7 +70,7 @@ def main():
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
     # activated.
-    flow360BaseJsonFile = os.path.join(here, '../flow360_XV15_BET_Template.json')
+    flow360BaseJsonFile = os.path.join(here, 'flow360_XV15_BET_Template.json')
 
     xrotorInputDicts = [{} for i in range(numBetDisks)]  # This is where we will store the BET disk information once we have it.
 
@@ -92,12 +89,14 @@ def main():
     with open (flow360BaseJsonFile) as fh:
         flow360Dict  = json.load(fh)
 
-    flow360Dict['BETDisks'] = xrotorInputDicts
     # Append the Flow360 data to the Flow360 input JSON
+    flow360Dict['BETDisks'] = xrotorInputDicts
 
     # dump the completed Flow360 dictionary to a json file
-    with open('../xv15_xrotor_translated_BET.json', 'w') as fh:
+    outputFilename = 'xv15_xrotor_translated_BET.json'
+    with open(outputFilename, 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
+        print('File saved:', outputFilename)
 
 
 ########################################################################################################################
