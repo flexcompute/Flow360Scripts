@@ -11,14 +11,12 @@ In this example, all the required values are hard coded in this sample script.
 
 Example
 -------
-    $ python3 sampleDFDCTranslateScript.py
+    $ python3 DFDCtoFlow360BET.py
 
 """
-import sys
 import json
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from BETDisk.BETTranslatorInterface import generateXrotorBETJSON
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -64,7 +62,7 @@ def main():
     # this example will show you how to create a BET disk input JSON file with 2 BET disks.
 
     # path to the DFDC input files you would like to use.
-    dfdcFilePathList = ['dfdc_xv15_twist0.case', 'dfdcTest.case']  # Each BET disk will get its own geometry and polars definition.
+    dfdcFilePathList = ['data/dfdc/dfdc_xv15_twist0.case', 'data/dfdc/dfdcTest.case']  # Each BET disk will get its own geometry and polars definition.
     dfdcFilePathList = [os.path.join(here, file) for file in dfdcFilePathList]
     # The number of BET disks defined in your Flow360Json file is the number of elements in your dfdcFilePathList
     numBetDisks = len(dfdcFilePathList)  # number of disks is length of the filename list
@@ -72,7 +70,7 @@ def main():
     # Path to the existing Flow360 run parameters that you would like to append the Betdisk information to.
     # IMPORTANT: you must make sure that the mesh is appropriately refined in the region where the BETdisk will be
     # activated.
-    flow360BaseJsonFile = os.path.join(here, '../flow360_XV15_BET_Template.json')
+    flow360BaseJsonFile = os.path.join(here, 'flow360_XV15_BET_Template.json')
 
     dfdcInputDicts = [{} for i in range(numBetDisks)]  # This is where we will store the BET disk information once we have it.
 
@@ -101,8 +99,10 @@ def main():
 
 
     # dump the completed Flow360 dictionary to a json file
-    with open('xv15_dfdc_translated_BET.json', 'w') as fh:
+    outputFilename = 'xv15_dfdc_translated_BET.json'
+    with open(outputFilename, 'w') as fh:
         json.dump(flow360Dict, fh, indent=4)
+        print('File saved:', outputFilename)
 
 ########################################################################################################################
 if __name__ == '__main__':

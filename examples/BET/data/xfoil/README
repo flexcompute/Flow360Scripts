@@ -1,8 +1,4 @@
-This directory contains an example script showing how to run the Xfoil => Flow 360 Bet disk translator.
-
-To run simply type  "python3 sampleXfoilTranslateScript.py"
-
-In this directory we also have files called:
+In this directory we have files called:
 secNXfoilPolarMN.dat where N are various numbers. These are sample Xfoil output files that will be used as the polars for the various section number at various mach numbers. 
 
 We laso have files called xv15_geometry_xfoil_translatorDiskN.csv. These contain the list of which polars to use and what the blade geometry definition looks like (i.e. chord and twist vs span).
