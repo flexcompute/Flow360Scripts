@@ -22,7 +22,7 @@ class AdvancedTestSuite(unittest.TestCase):
                                  "omega" : 0.0046,
                                  "numberOfBlades" : 3}
 
-        inputFile = os.path.join(here, 'data/C81/xv15_geometry.csv')
+        inputFile = os.path.join(here, 'data/c81/Xv15_geometry.csv')
         betFlow360 = interface.generateC81BETJSON(inputFile, betDiskAdditionalInfo)
 
 
