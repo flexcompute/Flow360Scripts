@@ -27,6 +27,7 @@ class AdvancedTestSuite(unittest.TestCase):
         inputFile = os.path.join(here, 'data/xfoil/xv15_geometry_xfoil_translatorDisk0.csv')
         betFlow360 = interface.generateXfoilBETJSON(inputFile, betDiskAdditionalInfo)
 
+
         with open(os.path.join(here, 'ref/xfoilTest.json')) as fh:
             refbetFlow360 = json.load(fh)
 
