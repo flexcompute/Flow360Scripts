@@ -1094,8 +1094,12 @@ def generateAlphas():
     # posAng2 = list(arange(10, 29, 1).astype(float))
     # return list(arange(-180, -30, 10).astype(float)) + negAng + posAng + posAng2 + list(arange(30, 190, 10).astype(float))  # json doesn't like the numpy default int64 type so I make it a float
 
-    # option 2: return every degree
-    return floatRange(-180, 181)
+    # option 2: return every degree with a refinement of every 1/2 degree between -10 and 10
+    negAng = floatRange(-180, -9)
+    posAng = [-9,-8.5,-8,-7.5,-7,-6.5,-6,-5.5,-5,-4.5,-4,-3.5,-3,-2.5,-2,-1.5,-1,-0.5,0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9]
+    posAng2 = floatRange(10, 181)
+    return negAng+posAng+posAng2
+    #return floatRange(-180, 181)
 
 
 ########################################################################################################################
@@ -1306,6 +1310,7 @@ def calcClCd(xrotorDict, alphas, machNum, nrRstation):
     FAC = 1.0
     # --- Total drag terms
     CDRAG = CDRAG * FAC + DCD + CDC
+
 
     # Now we modify the Clift and CDrag outside of the large alpha range to smooth out
     # the Cl and CD outside of the expected operating range
