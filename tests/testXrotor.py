@@ -26,6 +26,7 @@ class AdvancedTestSuite(unittest.TestCase):
         inputFile = os.path.join(here, 'data/xv15_like_twist0.xrotor')
         betFlow360 = interface.generateXrotorBETJSON(inputFile, betDiskAdditionalInfo)
 
+
         with open(os.path.join(here, 'ref/xrotorTest.json')) as fh:
             refbetFlow360 = json.load(fh)
 
