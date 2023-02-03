@@ -20,7 +20,7 @@ figSize = [16, 8]
 ticks = ['x-', '+--', 'p:', '^-', '>--', '<-', '*:', '-', '1-', '2--','3--','4:']
 
 ################################################################################################################
-def plotClCd(jsonDict,saveBool):
+def plotClCd(jsonDict, save=False, show=True):
     """
     Take a valid Flow360 BET disk JSON dictionary and plot the 2D polar values for the various stations.
 
@@ -62,8 +62,11 @@ def plotClCd(jsonDict,saveBool):
             plt.grid('on')
             plt.legend()
             plt.title('Cl vs Alpha')
-            if saveBool:
+            if save:
                 plt.savefig('disk%i_CL_CD_comparetoXrotor_station%i.png' % (diskNum, stationIdx))
+            if show:
+                plt.show()
+
             plt.close()
 
         # Now we plot the CL v alpha and CD vs alpha at larger alphas
@@ -90,25 +93,32 @@ def plotClCd(jsonDict,saveBool):
             plt.grid('on')
             plt.legend()
             plt.title('Cd vs Alpha')
-            if saveBool:
+            if save:
                 plt.savefig('disk%i_CL_CDvAlpha_station%i.png' % (diskNum, stationIdx))
+            if show:
+                plt.show()
             plt.subplot(1, 2, 1)
             plt.xlim(-45, 45)
             plt.subplot(1, 2, 2)
             plt.xlim(-45, 45)
-            if saveBool:
+            if save:
                 plt.savefig('disk%i_CL_CDvAlphaZoomed_station%i.png' % (diskNum, stationIdx))
+            if show:
+                plt.show()
             plt.subplot(1, 2, 1)
             plt.xlim(-20, 20)
             plt.subplot(1, 2, 2)
             plt.xlim(-20, 20)
-            if saveBool:
+            if save:
                 plt.savefig('disk%i_CL_CDvAlphaZoomed2_station%i.png' % (diskNum, stationIdx))
+            if show:
+                plt.show()
+
             plt.close()
 
 
 ################################################################################################################
-def plotTwistChord(jsonDict,saveBool):
+def plotTwistChord(jsonDict, save=False, show=True):
     """
     Take a valid Flow360 BET disk JSON dictionary and plot the twist and chord of the propeller vs radius for the
     various stations.
@@ -133,8 +143,10 @@ def plotTwistChord(jsonDict,saveBool):
     plt.grid('on')
     plt.legend()
     plt.title('Twist vs Propeller Radius')
-    if saveBool:
+    if save:
         plt.savefig('TwistVRadius.png')
+    if show:
+        plt.show()        
     plt.close()
 
     # now we plot the chords vs radius
@@ -152,8 +164,10 @@ def plotTwistChord(jsonDict,saveBool):
     plt.grid('on')
     plt.legend()
     plt.title('Chord vs Propeller Radius')
-    if saveBool:
+    if save:
         plt.savefig('ChordVRadius.png')
+    if show:
+        plt.show()      
     plt.close()
 ################################################################################################################
 def main():
@@ -166,21 +180,20 @@ def main():
     parser = argparse.ArgumentParser(description="PLotting script for the BET 2D polar information contained within a Flow360.json File.")
     parser.add_argument('-i', '--input',
                         type     = str,
-                        required = False,
+                        required = True,
                         help     = 'input Flow360.json file with a BETdisk field we want to validate')
-    parser.add_argument('-s','--savePNG',
-                        type = bool,
+    parser.add_argument('--no-save',
                         required = False,
-                        default = True,
-                        help='Boolean whether to save the PNG plots of the 2D polars or not')
+                        help='Whether to skip saving the PNG plots of the 2D polars', 
+                        action="store_true")                        
+    parser.add_argument('--show',
+                        required = False,
+                        help='Boolean whether to show the plots of the 2D polars',
+                        action="store_true")                        
     args = parser.parse_args()
 
     # load in the files
-    if args.input is not None:  # assume we passed it the json file names
-        JsonFile = args.input
-    else:  # assume we need to enter the Flow360 file name
-        JsonFile = input('Please enter the path of the Flow360 json input file you would like to use:')
-        saveBool = True
+    JsonFile = args.input
 
     if not os.path.isfile(JsonFile):
         print('flow360 json input file %s does not exist.' % JsonFile)
@@ -190,9 +203,9 @@ def main():
     with open(JsonFile) as fh:
         jsonDict = json.load(fh)
 
-
-    plotClCd(jsonDict, saveBool)
-    plotTwistChord(jsonDict, saveBool)
+    savePNG = not args.no_save
+    plotClCd(jsonDict, savePNG, args.show)
+    plotTwistChord(jsonDict, savePNG, args.show)
 
 
 ################################################################################################################
