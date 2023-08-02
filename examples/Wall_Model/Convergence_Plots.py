@@ -2,17 +2,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 import os, csv
 import numpy as np
-
-
-def getDataDictFromCsv(csvFilePath):
-    with open(csvFilePath) as csvFile:
-        csvReader = csv.DictReader(csvFile)
-        data = defaultdict(list)
-        for row in csvReader:
-            for key, value in row.items():
-                if len(key)>0 and (not key.isspace()):
-                    data[key.strip()].append(float(value))
-    return data
+import pandas as pd
 
 def computeCLCD(data):
      CL0 = np.add(data['Windsor_CL'], data['Windsor_rear_CL'])
@@ -22,35 +12,34 @@ def computeCLCD(data):
 
      
 
-def plotLoads(data, caseName, plotName):
-    axes[0].plot(data['pseudo_step'], data['CL'], label=plotName)
-    axes[1].plot(data['pseudo_step'], data['CD'], label=plotName)
-    axes[0].set_ylabel('CL');
-    axes[1].set_ylabel('CD');
-    axes[0].set_ylim(-0.2, -0.1);
-    axes[1].set_ylim(0.25, 0.45);
+def plotLoads(data, plotName):
+    x = data['pseudo_step']
+    keys = ['CL', 'CD']
+    for ax, key in zip(axes, keys):
+        ax.plot(x, data[key], label = plotName)
+        ax.set_ylabel(key)
+        ax.legend()
+        ax.set_xlabel('Pseudo step');
+        ax.grid(which='major', color='gray')
+        if (key == 'CL'):
+            ax.set_ylim(-0.2, -0.1)
+        elif (key == 'CD'):
+             ax.set_ylim(0.25, 0.45);
 
-    for i in range(0,2):
-            axes[i].legend()
-            axes[i].set_xlabel('Pseudo step');
-            axes[i].grid(which='major', color='gray')
-
-def plotResiduals(res, caseName, plotName):
+def plotResiduals(res, plotName):
     x = res['pseudo_step']
-    key = ['0_cont', '1_momx', '2_momy', '3_momz', '4_energ', '5_nuHat']
+    keys = ['0_cont', '1_momx', '2_momy', '3_momz', '4_energ', '5_nuHat']
     labels = ['Cont Residual', 'Momx Residual', 'Momy Residual', 'Momz Residual', 'Energy Residual', 'nuHat Residual']
-    for i in range(0,6):
-        axes[i].semilogy(x, res[key[i]], label=plotName)
-        axes[i].set_ylabel(labels[i])
+    for ax, key, label in zip(axes, keys, labels):
+        ax.semilogy(x, res[key], label = plotName)
+        ax.set_ylabel(label)
+        ax.legend()
+        ax.grid(which='major', color='gray')
+        ax.set_xlabel('Pseudo step');
+        ax.set_yticks(10.0**np.arange(-14,-3));
+        ax.set_ylim([1e-13,1e-3])
+        ax.set_xlim([0,10000])
 
-    for i in range(0,6):
-        axes[i].legend()
-        axes[i].grid(which='major', color='gray')
-        axes[i].set_xlabel('Pseudo step');
-        axes[i].set_yticks(10.0**np.arange(-14,-3));
-        axes[i].set_ylim([1e-13,1e-3])
-        axes[i].set_xlim([0,10000])
-    return 0
 
 
 
@@ -59,46 +48,42 @@ with open('caseNameList.dat', 'r') as file:
         caseNameList = file.read().splitlines()
 
 naming = ["Wall Resolved", "Wall Modeled"]
+figures = []
+axes = []
 
 def main():
 
     #Plot loads convergence histories
-        global figures, axes
-        figures = []
-        axes = []
-        for i in range(0,2):
+        for i in [0,1]:
             fig, ax = plt.subplots(figsize=(8,6))
             figures.append(fig)
             axes.append(ax)
-            dir_path= os.path.join(os.getcwd(),f'figures')
+        dir_path= os.path.join(os.getcwd(),f'figures')
         if not os.path.isdir(dir_path): # if directory already exists:
             os.makedirs(dir_path) # make that dir
 
-        j=0
-        for resolution in caseNameList:
+        for j, resolution in enumerate(caseNameList):
             csvPath = os.path.join(os.getcwd(),f'{resolution}','surface_forces_v2.csv')
-            data = getDataDictFromCsv(csvPath)
+            data = pd.read_csv(csvPath, skipinitialspace=True)
             computeCLCD(data)
-            plotLoads(data, resolution, naming[j])
-            j=j+1
+            plotLoads(data, naming[j])
 
         figures[0].savefig(f'figures/CL.png', dpi=500);
         figures[1].savefig(f'figures/CD.png', dpi=500);
 
-        for i in range(0,2):
-            axes[i].cla();
+        for ax in axes:
+            ax.cla();
         
         #Plot residual convergence histories
         for i in range(0,6):
           fig, ax = plt.subplots(figsize=(8,6))
           figures.append(fig)
           axes.append(ax)
-          j=0
-        for resolution in caseNameList:
+        for j, resolution in enumerate(caseNameList):
             csvPath = os.path.join(os.getcwd(),f'{resolution}','nonlinear_residual_v2.csv')
-            res = getDataDictFromCsv(csvPath)
-            plotResiduals(res, resolution, naming[j])
-            j=j+1
+            res = pd.read_csv(csvPath, skipinitialspace=True)
+            plotResiduals(res, naming[j])
+        
         figures[0].savefig(f'figures/Cont.png', dpi=500);
         figures[1].savefig(f'figures/Momx.png', dpi=500);
         figures[2].savefig(f'figures/Momy.png', dpi=500);

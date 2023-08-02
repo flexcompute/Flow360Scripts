@@ -25,5 +25,3 @@ for i in range(0, len(caseNameList)):
         for j in range(0, len(files)):
             dst = os.path.join(caseFolder, files[j])
             case.results.download_file(getattr(CaseDownloadable,downloadable[j]), to_file=dst)
-        #case.results.download_surface()
-        #case.results.download_volumetric()
