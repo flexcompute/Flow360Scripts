@@ -1,0 +1,88 @@
+{
+    "geometry" : {
+        "refArea" : 0.056,
+        "momentCenter" : [0, 0, 0],
+        "momentLength" : [0.6375, 0.6375, 0.6375]
+    },
+    "volumeOutput" : {
+        "outputFormat" : "paraview",
+        "outputFields" : ["primitiveVars", "qcriterion", "Mach"]
+    },
+    "surfaceOutput" : {
+        "outputFormat" : "paraview",
+        "outputFields" : ["primitiveVars", "Cp", "Cf", "CfVec", "yPlus"]
+    },
+    "navierStokesSolver" : {
+        "absoluteTolerance" : 1e-12,
+        "kappaMUSCL" : -1.0
+    },
+    "turbulenceModelSolver" : {
+        "modelType" : "SpalartAllmaras",
+        "absoluteTolerance" : 1e-10
+    },
+	"freestream": {
+		"muRef": 4.2925193198151646e-8,
+		"Mach": 0.11754541460405184,
+		"Temperature": 288.15,
+		"alphaAngle": 0,
+		"betaAngle": 0,
+		"comments": {
+			"pressure": 101325.009090375,
+			"densityKgPerCubicMeter": 1.225,
+			"speedOfSoundMeterPerSecond": 340.29400580821283,
+			"freestreamMeterPerSecond": 40,
+			"meshUnitInMeter": 1
+		}
+	},
+    "boundaries" : {
+        "1": {
+            "type": "NoSlipWall",
+            "name": "Flow.CFDWT.FloorUnder"
+        },
+        "2": {
+            "type": "Freestream",
+            "name": "Flow.CFDWT.In"
+        },
+        "3": {
+            "type": "SlipWall",
+            "name": "Flow.CFDWT.Left"
+        },
+        "4": {
+            "type": "NoSlipWall",
+            "name": "Flow.CFDWT.Floor"
+        },
+        "5": {
+            "type": "SlipWall",
+            "name": "Flow.CFDWT.Roof"
+        },
+        "6": {
+            "type": "Freestream",
+            "name": "Flow.CFDWT.Out"
+        },
+        "7": {
+            "type": "SlipWall",
+            "name": "symmetry"
+        },
+        "8": {
+            "type": "NoSlipWall",
+            "name": "Windsor"
+        },
+        "9": {
+            "type": "NoSlipWall",
+            "name": "Windsor_rear"
+        },
+        "10": {
+            "type": "NoSlipWall",
+            "name": "Windsor_supports"
+        }
+    },
+    "timeStepping" : {
+        "maxPseudoSteps" : 10000,
+        "CFL" : {
+	    "type": "ramp",
+            "initial" : 1,
+            "final": 200,
+            "rampSteps" : 2000
+        }
+    }
+}

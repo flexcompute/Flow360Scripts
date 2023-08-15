@@ -1,12 +1,14 @@
+import os
 import flow360 as fl
 from Files import WallResolved, WallModel
 
-print("Downloading mesh and solver files")
+print("Obtaining mesh and solver files")
+
 
 WallResolved.get_files()
 WallModel.get_files()
 
-print("Files downloaded")
+print("Files accessed")
 
 caseNameList=[]
 

@@ -80,7 +80,7 @@ def main():
           figures.append(fig)
           axes.append(ax)
         for j, resolution in enumerate(caseNameList):
-            csvPath = os.path.join(os.getcwd(),f'{resolution}','nonlinear_residual_v2.csv')
+            csvPath = os.path.join(os.getcwd(),f'{resolution}', 'nonlinear_residual_v2.csv')
             res = pd.read_csv(csvPath, skipinitialspace=True)
             plotResiduals(res, naming[j])
         

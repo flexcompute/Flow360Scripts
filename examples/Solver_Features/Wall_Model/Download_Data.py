@@ -1,11 +1,7 @@
 import os
 import flow360 as fl
-from flow360.component.case import CaseDownloadable
 from flow360 import MyCases
 
-files = ["nonlinear_residual_v2.csv", "surface_forces_v2.csv", "total_forces_v2.csv"]
-
-downloadable =["NONLINEAR_RESIDUALS", "SURFACE_FORCES", "TOTAL_FORCES"]
 
 #read in caseNameList
 
@@ -22,6 +18,4 @@ for i in range(0, len(caseNameList)):
             if case.name == caseNameList[i]:
                 break
         #Download the files 
-        for j in range(0, len(files)):
-            dst = os.path.join(caseFolder, files[j])
-            case.results.download_file(getattr(CaseDownloadable,downloadable[j]), to_file=dst)
+        case.results.download(nonlinear_residuals=True, surface_forces=True, total_forces=True, destination=caseFolder)
