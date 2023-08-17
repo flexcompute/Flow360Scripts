@@ -1,0 +1,48 @@
+{
+    "refinement": [
+        {
+            "type": "cylinder",
+            "radius": 1.1,
+            "length": 2.0,
+            "spacing": 0.075,
+            "axis": [0,1,0],
+            "center": [0.7,-1.0,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 2.2,
+            "length": 2.0,
+            "spacing": 0.1,
+            "axis": [0,1,0],
+            "center": [0.7,-1.0,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 3.3,
+            "length": 2.0,
+            "spacing": 0.175,
+            "axis": [0,1,0],
+            "center": [0.7,-1.0,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 4.5,
+            "length": 2.0,
+            "spacing": 0.225,
+            "axis": [0,1,0],
+            "center": [0.7,-1.0,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 6.5,
+            "length": 14.5,
+            "spacing": 0.3,
+            "axis": [-1,0,0],
+            "center": [2,-1.0,0]
+        }
+    ],
+    "volume": {
+        "firstLayerThickness": 1.35e-06,
+        "growthRate": 1.04
+    }
+}
