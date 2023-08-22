@@ -21,8 +21,8 @@ class S809(base_test_case.BaseTestCase):
     else:
         class url:
             geometry = "https://simcloud-public-1.s3.amazonaws.com/s809/s809.csm"
-            surface_json = "https://simcloud-public-1.s3.amazonaws.com/s809/s809SurfaceMesh.json"
-            volume_json = "https://simcloud-public-1.s3.amazonaws.com/s809/s809VolumeMesh.json"
-            case_json = "https://simcloud-public-1.s3.amazonaws.com/s809/s809Case.json"
+            surface_json = "local://s809SurfaceMesh.json"
+            volume_json = "local://s809VolumeMesh.json"
+            case_json = "local://s809Case.json"
             mesh = "https://simcloud-public-1.s3.amazonaws.com/s809/s809structured.cgns"
 

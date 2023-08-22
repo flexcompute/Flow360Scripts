@@ -20,7 +20,7 @@ class ONERAM6(base_test_case.BaseTestCase):
     else:
         class url:
             geometry   = "https://simcloud-public-1.s3.amazonaws.com/om6QuickStartAutoMesh/om6wing.csm"
-            surface_json = "https://simcloud-public-1.s3.amazonaws.com/om6QuickStartAutoMesh/om6SurfaceMesh.json"
-            volume_json = "https://simcloud-public-1.s3.amazonaws.com/om6QuickStartAutoMesh/om6VolumeMesh.json"
-            case_json = "https://simcloud-public-1.s3.amazonaws.com/om6QuickStartAutoMesh/om6Case.json"
+            surface_json = "local://om6SurfaceMesh.json"
+            volume_json = "local://om6VolumeMesh.json"
+            case_json = "local://om6Case.json"
 
