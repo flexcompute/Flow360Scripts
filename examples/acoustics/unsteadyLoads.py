@@ -269,7 +269,7 @@ def getUnsteadyLoads(aSound,rho,Lgrid,caseId,oName,start = 0, pRev = 0):
     # thrust is in z direction
     thrust_force = Z_force
     # instantaneous thrust
-    thrust = lift
+    thrust = zforce
     
     # non-dimensional thrust
     non_dim_thrust = thrust / (rho * (aSound**2) * (Lgrid**2))
