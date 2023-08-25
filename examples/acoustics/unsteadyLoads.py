@@ -137,6 +137,64 @@ def plot_Cfz_moment_coeffcients(rev,CFz,CM,oName):
     plt.close()
 #end
 
+def getForcesPerIntervals(values,numIntervals):
+    min = 0
+    max = len(values[0])
+    interval_size = int(np.round((max - min) / numIntervals))
+
+    interval_vars = {}
+    interval_id = 0
+    for start in range(min,max,interval_size):
+        end = start + interval_size
+        var_tmp = []
+        i = 0
+        for var in values:
+            var_tmp.append(var[start:end])
+            i+=1
+        interval_vars[f'{interval_id}'] = var_tmp
+        interval_id+=1
+    return interval_vars
+#end
+
+def cal_confidence_bound(data,nInterval):
+
+    # separate data into number of intervals
+    data_per_chunk = getForcesPerIntervals(data,nInterval)
+    numForces = len( list( data_per_chunk.values() )[0] )
+
+    # dict holding averaged values per interval for all data
+    data_averaged_per_chunk = {}
+    # loop over number of intervals
+    for i in range(nInterval):
+        # get the chunk of data in i interval
+        chunk_vars = data_per_chunk[ f'{i}' ]
+        # temporary list for averaged values in this chunk
+        averaged_list = []
+        # loop over data 
+        for data in chunk_vars:
+            # calculate the averaged value
+            averaged_value = np.mean(data)
+            # append it to list
+            averaged_list.append(averaged_value)
+        # assign the averaged list to a dict
+        data_averaged_per_chunk[ f'chunk_{i}' ] = averaged_list
+    
+    # convert the avged dict for all forces at each interval to an array
+    data_averaged = np.array(list( data_averaged_per_chunk.values() ))
+    # calculate population mean for averaged values in all chunks
+    data_averaged_mean = []
+    for iforce in range(numForces):
+        data_averaged_mean.append(np.mean( data_averaged[:,iforce] ))
+    
+    # calculate standard deviation of averaged forces across all chunks
+    sigma_forces = []
+    for iforce in range(numForces):
+        sigma_forces.append(np.sqrt( np.mean( ( data_averaged[:,iforce]-data_averaged_mean[iforce] )**2 ) ))
+    
+    confidence_bound = sigma_forces / np.sqrt(nInterval)
+    return [ sigma_forces ,confidence_bound ]
+
+
 def getUnsteadyLoads(aSound,rho,Lgrid,caseId,oName,start = 0, pRev = 0):
     print('For CaseID: {}'.format(caseId))
     print(separator(50))
@@ -162,9 +220,10 @@ def getUnsteadyLoads(aSound,rho,Lgrid,caseId,oName,start = 0, pRev = 0):
     velocity_ref = mach_ref*aSound
     # number of physical steps per one revolution
     steps_per_revolution = np.floor((2*np.pi/omega)/ref[6])
-    # 
+    # filter forces at the end of each physical step
     vars = getTotalForcesPerPhysicalSteps(caseId,start)
     print(separator(50))
+
     # revolution progress
     rev = [((i-start)/steps_per_revolution)+pRev for i in vars[0]]
 
@@ -231,24 +290,48 @@ def getUnsteadyLoads(aSound,rho,Lgrid,caseId,oName,start = 0, pRev = 0):
     varCT = np.mean([abs(averagedCT - np.min(CT)), np.max(CT) - averagedCT])
     varCQ = np.mean([abs(averagedCQ - np.min(CQ)), np.max(CQ) - averagedCQ])
 
+    # calculate standard deviation, one-sigma and two-sigma confidence bounds
+    numIntervals = 5
+    data = [CL,CD,CFz,CM,CT,CQ]
+    dev,oneSigma_confidence = cal_confidence_bound( data, numIntervals )
+    twoSigma_confidence = 2 * oneSigma_confidence
+
     # report
     print("CL = %.6f" % (averagedCL) + " +/- %.6f" % (varCL))
-    print("RSM CL = %.6f" % (RMScl))
+    print("RMS CL = %.6f" % (RMScl))
+    print("Standard Deviation CL = %.6f" % (dev[0]))
+    print("One-Sigma Bound CL = %.6f" % (oneSigma_confidence[0]))
+    print("Two-Sigma Bound CL = %.6f" % (twoSigma_confidence[0]))
     print(separator(40))
     print("CD = %.6f" % (averagedCD) + " +/- %.6f" % (varCD))
-    print("RSM CD = %.6f" % (RMScd))
+    print("RMS CD = %.6f" % (RMScd))
+    print("Standard Deviation CD = %.6f" % (dev[1]))
+    print("One-Sigma Bound CD = %.6f" % (oneSigma_confidence[1]))
+    print("Two-Sigma Bound CD = %.6f" % (twoSigma_confidence[1]))
     print(separator(40))
     print("CFz = %.6f" % (averagedCFz) + " +/- %.6f" % (varCFz))
-    print("RSM CFz = %.6f" % (RMScfz))
+    print("RMS CFz = %.6f" % (RMScfz))
+    print("Standard Deviation CFz = %.6f" % (dev[2]))
+    print("One-Sigma Bound CFz = %.6f" % (oneSigma_confidence[2]))
+    print("Two-Sigma Bound CFz = %.6f" % (twoSigma_confidence[2]))
     print(separator(40))
     print("CM = %.6f" % (averagedCM) + " +/- %.6f" % (varCM))
-    print("RSM CM = %.6f" % (RMScm))
+    print("RMS CM = %.6f" % (RMScm))
+    print("Standard Deviation CM = %.6f" % (dev[3]))
+    print("One-Sigma Bound CM = %.6f" % (oneSigma_confidence[3]))
+    print("Two-Sigma Bound CM = %.6f" % (twoSigma_confidence[3]))
     print(separator(40))
     print("CT = %.6f" % (averagedCT) + " +/- %.6f" % (varCT))
-    print("RSM CT = %.6f" % (RMSct))
+    print("RMS CT = %.6f" % (RMSct))
+    print("Standard Deviation CT = %.6f" % (dev[4]))
+    print("One-Sigma Bound CT = %.6f" % (oneSigma_confidence[4]))
+    print("Two-Sigma Bound CT = %.6f" % (twoSigma_confidence[4]))
     print(separator(40))
     print("CQ = %.6f" % (averagedCQ) + " +/- %.6f" % (varCQ))
-    print("RSM CQ = %.6f" % (RMScq))
+    print("RMS CQ = %.6f" % (RMScq))
+    print("Standard Deviation CQ = %.6f" % (dev[5]))
+    print("One-Sigma Bound CQ = %.6f" % (oneSigma_confidence[5]))
+    print("Two-Sigma Bound CQ = %.6f" % (twoSigma_confidence[5]))
     print(separator(40))
 
     # figure of merit
