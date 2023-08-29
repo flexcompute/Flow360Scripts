@@ -7,59 +7,80 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
 
-import flow360client
-
-def getCaseConfigParameters(caseId):
-    return flow360client.case.GetCaseInfo(caseId)['runtimeParams']
-
-def readAcousticCSVFile(acsv):
-    # read acoustic csv when the file is available via python api
-    # with tempfile.TemporaryDirectory() as tmpdir:
-    #     tmpfile = os.path.join(tmpdir, 'aeroacoustics_v3.csv')
-    #     flow360client.case.DownloadFile(caseId, 'aeroacoustics_v3.csv', tmpfile)
-    pressure_data = pd.read_csv(acsv,skipinitialspace=True)
+def read_acoustic_file(a_csv):
+    pressure_data = pd.read_csv(a_csv,skipinitialspace=True)
     times = pressure_data['physical_time']
     steps = pressure_data['physical_step']
-    p = pressure_data.iloc[:,2:-1]
+    p = pressure_data.iloc[:,2:]
     return [np.array(times),np.array(steps),np.array(p)]
 
-def filterZeroAcousticData(time,steps,pressure):
-    numObservers = pressure.shape[-1]
+def filter_zero_data(time,steps,pressure,observerId):
+    # dictionary of acoustic data for filtering
     acoustic_data_indices = {}
     acoustic_data = {}
-    # loop over observers to find where they are zero
-    for i in range(numObservers):
-        p_observer = pressure[:,i]
-        acoustic_data_indices[i] = np.where(p_observer!=0)[0]
+    # number of observers and their length
+    num_observers = pressure.shape[-1]
+    length_observers = pressure.shape[0]
+    # default when observerId is not given
+    observerId_start = 0
+    observerId_end = num_observers
+    # list of indices of first and last non-zero elements for observers
     first_elements = []
     last_elements = []
-    # lists of elements with zeros at begin and end
-    for i in range(numObservers):
-        first_elements.append(acoustic_data_indices[i][0])
-        last_elements.append(acoustic_data_indices[i][-1])
+    # all input as data
+    data = np.column_stack((steps,time,pressure))
+    
+    # when observerId is given
+    if observerId is not None:
+        # when id is within range
+        if observerId >= 0 and observerId <= num_observers-1:
+            observerId_start = observerId
+            observerId_end = observerId+1
+            num_observers = 1
+        # when id is not within range
+        else:
+            print("Observer Id doesn't exist")
+            exit()
+    
+    # loop over observers to find where they are not zero
+    for i in range(observerId_start,observerId_end,1):
+        p_observer = data[:,i+2]
+        acoustic_data_indices[i] = np.where(p_observer!=0)[0]
+
+    # lists of indices of elements at the beginning or/and ending where they are not zero
+    for i in range(observerId_start,observerId_end,1):
+        if len(acoustic_data_indices[i]) != 0:
+            first_elements.append(acoustic_data_indices[i][0])
+            last_elements.append(acoustic_data_indices[i][-1])
+        # when all data for an observer are zero
+        else:
+            first_elements.append(0)
+            last_elements.append(length_observers)
+    
     # max index where still there is a zero element for all observers
     start_index = max(first_elements)
     # min index where still there is a zero element for all observers
-    end_index = min(last_elements)
+    end_index = min(last_elements)+1
 
     # physical time and step where all observers all non zero
     acoustic_data['physical_time'] = time[start_index:end_index]
     acoustic_data['physical_step'] = steps[start_index:end_index]
 
     # non-zero acoustic data for all observers with the same physical time
-    for i in range(numObservers):
-        p_observer = pressure[:,i]
+    for i in range(observerId_start,observerId_end,1):
+        p_observer = data[:,i+2]
         acoustic_data[i] = p_observer[start_index:end_index]
-    return acoustic_data
+    return [observerId_start,observerId_end,num_observers,acoustic_data]
 
-def cal_spl(signal_amp):
-    p_ref=2e-5
-    return 10*np.log10(signal_amp/p_ref)
+def cal_spl(sound_pressure):
+    # reference sound pressure in air
+    p_ref = 2e-5
+    return 20 * np.log10(sound_pressure/p_ref)
 
 def plot_response(name,freq,resp,key):
     fig, ax = plt.subplots()
     # optional axis limit
-    ax.axis([100, 18000, 0, 70])
+    # ax.axis([100, 18000, 0, 70])
     plt.plot(freq,resp,'crimson',linewidth=0.8,marker='o',markersize=0.8)
     plt.xscale('log')
     for axis in [ax.xaxis, ax.yaxis]:
@@ -72,8 +93,8 @@ def plot_response(name,freq,resp,key):
     # optional log minor ticker
     ax.xaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=(0.2, 0.4, 0.6, 0.8), numticks=5))
 
-    plotTitle = f'Noise Spectrum - Observer {key}' if key != 'avg' else f'Noise Spectrum - Averaged'
-    plt.title(plotTitle, fontsize=10)
+    plot_title = f'Noise Spectrum - Observer {key}' if key != 'avg' else f'Noise Spectrum - Averaged'
+    plt.title(plot_title, fontsize=10)
     plt.xlabel('Frequency [Hz]', fontsize=10)
     plt.ylabel('SPL [dB]', fontsize=10)
     plt.grid(which='major')
@@ -88,46 +109,41 @@ def plot_response(name,freq,resp,key):
     plt.savefig(f'{name}_narrow-band_spectra_{key}.png', bbox_inches='tight')
     plt.close()
 
-def getSpectrum(aSound,rho,acsv,oName):
-    # reference sound pressure in air
-    p_ref = 2e-5
-
+def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
     # reads acoustic csv file
-    tt,stp,pdata = readAcousticCSVFile(acsv)
+    tt,stp,pdata = read_acoustic_file(a_csv)
     # filters zeros from acoustic data
-    acoustic_data = filterZeroAcousticData(tt,stp,pdata)
-    # number of observers based on acoustic data
-    numObservers = len(acoustic_data)-2
-
+    startId,endId,num_observers,acoustic_data = filter_zero_data(tt,stp,pdata,obsrId)
+    
     # output file basename
-    outFileName = os.path.splitext(os.path.basename(oName))[0]
+    out_file = os.path.splitext(os.path.basename(o_name))[0]
     # output oaspl file in dat format
-    oasplFile = os.path.join(os.curdir,outFileName+'_OASPL'+'.dat')
-    print(f"variables=i,{'oaspl_'+outFileName}",file=open(oasplFile, 'w'))
+    oaspl_file = os.path.join(os.curdir,out_file+'_OASPL'+'.dat')
+    print(f"variables=i,{'oaspl_'+out_file}",file=open(oaspl_file, 'w'))
     
     # initialized avg spectrum
     avg_response = 0
     # loop over observers
-    for i in range(numObservers):
+    for i in range(startId,endId,1):
         # get physical time from acoustic data
         tt = acoustic_data['physical_time']
         # get acoustic pressures for an observer
         pp = acoustic_data[i]
         # convert to dimensional pressure
-        pp = pp * rho * (aSound**2)
+        pp = pp * rho * (a_sound**2)
         # get the mean pressure for the observer
         p0 = np.mean(pp)
         # get the RMS for the pressure fluctuations
         p_rms = np.sqrt(np.mean((pp - p0)**2))
         # get the overall sound pressure based on pressure fluctuations
-        spl = 20 * np.log10(p_rms/p_ref)
+        spl = cal_spl(p_rms)
         # print oaspl
         print('Observer {} | OASPL: {:.5f} dB'.format(i,spl))
         # print oaspl in the file
-        print("{}, {:.5f}".format(i,spl),file=open(oasplFile, 'a'))
+        print("{}, {:.5f}".format(i,spl),file=open(oaspl_file, 'a'))
 
         # get the mean time step size for pressure fluctuations
-        meanStepSize = (tt[1:] - tt[:-1]).mean()
+        mean_step_size = (tt[1:] - tt[:-1]).mean()
         # define the windowing function
         window = np.hanning(len(pp))
         # windowing checks
@@ -142,7 +158,7 @@ def getSpectrum(aSound,rho,acsv,oName):
         N = len(X)
         n_oneside = N//2
         # find the dimensional frequencies from the fft
-        freq = np.fft.fftfreq(N,d=meanStepSize/aSound)
+        freq = np.fft.fftfreq(N,d=mean_step_size/a_sound)
         freq_oneside = freq[:n_oneside]
         
         # calculate the sound pressure level
@@ -152,18 +168,19 @@ def getSpectrum(aSound,rho,acsv,oName):
         avg_response += np.abs(response[:n_oneside])
         
         # plot the response
-        plot_response(outFileName,freq_oneside,response[:n_oneside],i)
+        plot_response(out_file,freq_oneside,response[:n_oneside],i)
     
     # averaging the spectrum across all observers - which is useful in some cases 
-    avg_response = avg_response/numObservers
+    avg_response = avg_response/num_observers
     # plot the average spectrum
-    plot_response(outFileName,freq_oneside,avg_response,'avg')
+    plot_response(out_file,freq_oneside,avg_response,'avg')
 #end
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-csv',type=str,required=True)
-    parser.add_argument('-o',type=str,required=True)
+    parser.add_argument('-i','--input',help='Specify the input aeroacoustic CSV file. For example: <caseId>_aeroacoustics_v3.csv',type=str,required=True)
+    parser.add_argument('-n','--observerId',help='Observer Id number for acoustic pos-processing.',type=int,required=False)
+    parser.add_argument('-o','--output',help='Specify the output file name for calculated OASPL.',type=str,required=True)
     args = parser.parse_args()
     scriptDir = os.getcwd()
 
@@ -172,8 +189,8 @@ def main():
     density = 1.225
 
     # getUnsteadyAerodynamicLoads(args.caseId)
-    getSpectrum(a_speed,density,args.csv,args.o)
-
+    get_spectrum(a_speed,density,args.input,args.output,args.observerId)
+#end
 
 if __name__ == '__main__':
     main()
