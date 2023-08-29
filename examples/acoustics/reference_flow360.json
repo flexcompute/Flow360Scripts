@@ -1,0 +1,19 @@
+{
+    "geometry": {
+        "refArea": 0.0410433058,
+        "momentLength": [0.1143,0.1143,0.1143]
+    },
+    "freestream": {
+        "MachRef": 0.21,
+        "alphaAngle": -90,
+        "betaAngle": 0
+    },
+    "slidingInterfaces": [
+        {
+            "omega": 1.8463665316425466
+        }
+    ],
+    "timeStepping": {
+        "timeStepSize": 0.0070895833
+    }
+}
