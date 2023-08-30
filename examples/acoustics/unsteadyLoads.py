@@ -102,7 +102,7 @@ def get_reference_parameters(case_config,ref_input):
         print(separator(50))
         ref_config = {'geometry': {'refArea': 0, 'momentLength': []}, 'freestream': {'MachRef': 0, 'alphaAngle': 0, 'betaAngle': 0}, 'slidingInterfaces': [{'omega': 0}], 'timeStepping': {'timeStepSize': 0}}
         ref_config['geometry']['refArea'] = float(input("Enter reference area: "))
-        moment_length_list = [int(item) for item in input("Enter three numbers for moment reference length as ref_mx ref_my ref_mz: ").split()]
+        moment_length_list = [float(item) for item in input("Enter three numbers for moment reference length as ref_mx,ref_my,ref_mz: ").split(',')]
         ref_config['geometry']['momentLength'] = moment_length_list
         ref_config['freestream']['MachRef'] = float(input("Enter reference Mach number: "))
         ref_config['freestream']['alphaAngle'] = float(input("Enter free-stream alpha angle in degrees: "))
