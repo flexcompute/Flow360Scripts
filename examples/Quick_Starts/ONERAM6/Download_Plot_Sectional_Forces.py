@@ -25,7 +25,7 @@ def plotSectionalForces(data, plotName):
 with open('caseNameList.dat', 'r') as file:
         caseNameList = file.read().splitlines()
 
-my_cases = MyCases()
+my_cases = MyCases(limit=None)
 
 naming = ["ONERAM6"]
 figures = []
@@ -41,6 +41,7 @@ def main():
         for case in my_cases:
             if case.name == caseNameList[i]:
                 break
+        print(case.name)
         forces = f"results/postprocess/forceDistribution.csv"
         #print(case.results)
         case._download_file(forces, to_folder=caseFolder)

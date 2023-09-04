@@ -43,7 +43,7 @@ def main():
     os.makedirs('visualization_figures', exist_ok=True)
     with open('caseNameList.dat', 'r') as file:
         caseNameList = file.read().splitlines()
-    my_cases = MyCases()
+    my_cases = MyCases(limit=None)
     for i in range(0, len(caseNameList)):
         caseFolder = os.path.join(os.getcwd(), caseNameList[i])
         os.makedirs(caseFolder, exist_ok = True)
@@ -51,6 +51,7 @@ def main():
         for case in my_cases:
             if case.name == caseNameList[i]:
                 break
+        print(case.name)
         fetchPNG(case, 'Cp')
         fetchPNG(case, 'Cf')
         fetchPNG(case, 'Fv')
