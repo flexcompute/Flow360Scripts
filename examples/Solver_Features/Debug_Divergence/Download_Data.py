@@ -8,7 +8,7 @@ from flow360 import MyCases
 with open('caseNameList.dat', 'r') as file:
         caseNameList = file.read().splitlines()
 
-my_cases = MyCases()
+my_cases = MyCases(limit=None)
 
 for i in range(0, len(caseNameList)):
         caseFolder = os.path.join(os.getcwd(), caseNameList[i])
@@ -17,6 +17,7 @@ for i in range(0, len(caseNameList)):
         for case in my_cases:
             if case.name == caseNameList[i]:
                 break
+        print(case.name)
         #Download the files 
         case.results.download(minmax_state=True, destination=caseFolder)
         
