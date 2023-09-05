@@ -1,0 +1,53 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profile_open_ends.dat"
+        },
+        "properties": {
+            "center": [0.375,0,0],
+            "axis": [1,0,0],
+            "diameter": 7.948,
+            "length": 1.68,
+            "maxEdgeLength": 0.1,
+            "refinementFactor": 0.5,
+            "fixedDistributionLayers": 12
+        },
+        "spacing": {
+            "profileSegments": {
+                "0": {
+                    "cellType": "quad",
+                    "stretching": [0.01,1.2,0.2,1.2,0.5]
+                },
+                "1": {
+                    "cellType": "tri",
+                    "stretching": [0.01,1.2,0.02,1.2,0.6]
+                },
+                "2": {
+                    "cellType": "quad",
+                    "stretching": [0.01,1.2,0.02,1.2,0.6]
+                },
+                "3": {
+                    "cellType": "quad",
+                    "stretching": [0.01,1.2,0.02,1.2,0.6]
+                },
+                "4": {
+                    "cellType": "quad",
+                    "stretching": [0.01,1.2,0.02,1.2,0.6]
+                },
+                "5": {
+                    "cellType": "quad",
+                    "stretching": [0.01,1.2,0.02,1.2,0.6]
+                },
+                "6": {
+                    "cellType": "quad",
+                    "stretching": [0.01,1.2,0.02,1.2,0.6]
+                },
+                "7": {
+                    "cellType": "quad",
+                    "stretching": [0.02,1.0,0.02,1.0,0.6]
+                }
+            }
+        }
+    }
+}
