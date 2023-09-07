@@ -6,8 +6,7 @@ To run the demo case follow these steps:
 
 3. Run `python Convergence_Plots.py` -> this script will cross-plot the load and residual convergence histories for the wall-resolved and wall-modeled cases.
 
-[^1] Files.py contains reference to the location of the meshes and JSON files. The default option is to use a mesh from Flexcompute storage servers and the Flow360.json file located in the "localFiles directory".
-To run with a mesh stored in the "localFiles" directory, Run Submit_Cases.py --localFiles 1
+[^1] Files.py contains reference to the location of the meshes and JSON files. The default option is to use a mesh from Flexcompute storage servers and the Flow360.json file located in the "localFiles directory". To run with a mesh stored in the "localFiles" directory, run `python Submit_Cases.py --localFiles 1`.
 
 
 
