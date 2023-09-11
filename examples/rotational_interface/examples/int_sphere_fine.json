@@ -1,0 +1,32 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/sphere.dat"
+        },
+        "properties": {
+            "center": [1.5,1.25,-2.5],
+            "axis": [1,0,0],
+            "maxEdgeLength": 0.0125,
+            "refinementFactor": 1.0,
+            "frontFixedDistributionLayers": 1,
+            "backFixedDistributionLayers": 1
+        },
+        "spacing": {
+            "profileSegments": {
+                "0": {
+                    "cellType": "tri",
+                    "stretching": [0.01,1.2,0.015,1.0,0.012]
+                },
+                "1": {
+                    "cellType": "tri",
+                    "stretching": [0.008,1.01,0.008,1.01,0.008]
+                },
+                "2": {
+                    "cellType": "tri",
+                    "stretching": [0.02,1.05,0.01,1.2,0.015]
+                }
+            }
+        }
+    }
+}

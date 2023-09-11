@@ -1,0 +1,42 @@
+import os
+import argparse
+
+import interface.reader as reader
+import interface.writer as writer
+import interface.utilities as utlz
+import interface.arbitrary as arb_int
+import interface.cylinderical as cyn_int
+import interface.spherical as sph_int
+
+def gen_rotational_interface(params):
+    int_dict = params["interface"]
+
+    #setting default in case they are not defined
+    int_type = utlz.dict_read_or_default(int_dict['general'],"type","cylinder")
+
+    if int_type == 'cylinder':
+        int_mesh = cyn_int.gen_cylindrical_interface(int_dict)
+    elif int_type == 'sphere':
+        int_mesh = sph_int.gen_spherical_interface(int_dict)
+    elif int_type == 'profile':
+        int_mesh = arb_int.gen_profile_interface(int_dict)
+    return int_mesh
+#end
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i','--input',help='Specify the input JSON file that describes the rotational interface.',type=str,required=True)
+    parser.add_argument('-o','--output',help='Specify the output file name for the rotational interface.',type=str,required=True)
+    args = parser.parse_args()
+    scriptDir = os.getcwd()
+    
+    # read interface parameters
+    int_params = reader.read_config_parameters(args.input)
+    # generate interface mesh
+    interfaceMesh = gen_rotational_interface(int_params)
+    # writing the interface mesh
+    writer.write_mesh(interfaceMesh,args.output)
+#end
+
+if __name__ == '__main__':
+    main()

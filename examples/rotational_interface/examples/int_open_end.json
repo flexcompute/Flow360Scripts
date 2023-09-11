@@ -1,0 +1,52 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/arbitrary_open_end.dat"
+        },
+        "properties": {
+            "center": [1.5,0.5,1.0],
+            "axis": [1,0,0],
+            "maxEdgeLength": 0.05,
+            "refinementFactor": 1.0,
+            "frontFixedDistributionLayers": 2,
+            "backFixedDistributionLayers": 18
+        },
+        "spacing": {
+            "profileSegments": {
+                "0": {
+                    "cellType": "tri",
+                    "stretching": [0.025,1.2,0.05,1.01,0.05]
+                },
+                "1": {
+                    "cellType": "tri",
+                    "stretching": [0.06,1.05,0.06,1.06,0.07]
+                },
+                "2": {
+                    "cellType": "tri",
+                    "stretching": [0.07,1.1,0.07,1.1,0.1]
+                },
+                "3": {
+                    "cellType": "tri",
+                    "stretching": [0.07,1.1,0.08,1.1,0.1]
+                },
+                "4": {
+                    "cellType": "tri",
+                    "stretching": [0.08,1.1,0.08,1.1,0.1]
+                },
+                "5": {
+                    "cellType": "tri",
+                    "stretching": [0.05,1.01,0.05,1.01,0.05]
+                },
+                "6": {
+                    "cellType": "tri",
+                    "stretching": [0.05,1.02,0.04,1.05,0.04]
+                },
+                "7": {
+                    "cellType": "quad",
+                    "stretching": [0.04,1.1,0.001,1.25,0.05]
+                }
+            }
+        }
+    }
+}
