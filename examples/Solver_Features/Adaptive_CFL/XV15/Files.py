@@ -17,6 +17,6 @@ class XV15(base_test_case.BaseTestCase):
             case_json = "local://Flow360.json"
     else:
         class url:
-            mesh = "PLACEHOLDER"
-            case_json = "PLACEHOLDER"
+            mesh = "https://simcloud-public-1.s3.amazonaws.com/examples/Solver_Features/Adaptive_CFL/XV15/xv15_airplane_pitch26.cgns.bz2"
+            case_json = "local://Flow360.json"
 

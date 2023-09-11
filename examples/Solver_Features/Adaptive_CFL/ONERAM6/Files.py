@@ -17,5 +17,5 @@ class ONERAM6(base_test_case.BaseTestCase):
             case_json = "local://Flow360.json"
     else:
         class url:
-            mesh = "PLACEHOLDER"
-            case_json = "PLACEHOLDER"
+            mesh = "https://simcloud-public-1.s3.amazonaws.com/examples/Solver_Features/Adaptive_CFL/ONERAM6/mesh.lb8.ugrid.bz2"
+            case_json = "local://Flow360.json"

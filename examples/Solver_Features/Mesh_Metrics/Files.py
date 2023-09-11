@@ -17,6 +17,6 @@ class CRM_PoorSurface(base_test_case.BaseTestCase):
             case_json = "local://Flow360_PoorSurface.json"
     else:
         class url:
-            mesh = "PLACEHOLDER"
-            case_json = "PLACEHOLDER"
+            mesh = "https://simcloud-public-1.s3.amazonaws.com/examples/Solver_Features/Mesh_Metrics/Unswept_CRM_Poor_Surface.cgns.bz2"
+            case_json = "local://Flow360_PoorSurface.json"
 
