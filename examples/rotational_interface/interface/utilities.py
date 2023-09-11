@@ -79,10 +79,6 @@ def cal_min_initial_tri(s_point,f_center,n_slice,m_edge,max_tri,min_tri):
 
 # calculates initial number of edges when profiles starts from axis or rotation or not
 def cal_starting_elements(ref,m_edge,s_point,e_point,f_center,b_center,n_slice):
-    # n_slice = interface_slices
-    # scaling the starting and ending point coordinates
-    # s_point_coords = [coord*scale_factor for coord in s_point]
-    # e_point_coords = [coord*scale_factor for coord in e_point]
     s_point_coords = s_point
     e_point_coords = e_point
     # status of centers at front and back

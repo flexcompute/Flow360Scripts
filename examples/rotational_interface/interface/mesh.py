@@ -113,8 +113,6 @@ def get_ring_connection(ringId,ring_delta,cent_status,m_index,m_points,m_type):
     consecutive_dist = []
     for i in range(len(c_ring_point)-1):
         consecutive_dist.append(math.dist(c_ring_point[i+1],c_ring_point[i]))
-        # # the reference distance from the first element to check tolerance
-        # if i == 0: ref_distance = consecutive_dist[-1]
     return consecutive_dist
 #end
 
@@ -172,10 +170,6 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
     # profile points for this face and their cell type
     face_points = f_dist[0]
     face_cellType = f_dist[1]
-    # number of points - left
-    mesh_size_boundaries[0] = len(f_dist[0])
-    # number of points - right
-    mesh_size_boundaries[1] = len(f_dist[0])
 
     # first ring mesh
     first_ring_points = f_start_ring[0]
@@ -257,10 +251,8 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
         if not f_status: 
             list_points = list_points[1:]
             connectivity.append(("triangle", mesh_tri_elements[dim_ring_delta:]))
-            mesh_size_boundaries[2] = len(mesh_points[1])
         else:
             connectivity.append(("triangle", mesh_tri_elements))
-            mesh_size_boundaries[2] = 0
     else:
         connectivity.append(("triangle", []))
     # when there quads adds them to connectivity
@@ -268,12 +260,10 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
             connectivity.append(("quad", mesh_quad_elements))
     else:
         connectivity.append(("quad", []))
-    mesh_size_boundaries[3] = len(mesh_points[i_ring])
     index_range = [list_index[0],list_index[-1]]
     points_list = [list_points]
     elements_list = [connectivity]
     ring_dict = [mesh_points,mesh_points_index]
-
     return [points_list,elements_list,ring_dict,index_range]
 #end
 
@@ -281,14 +271,13 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
 def gen_interface_mesh(p_dict,params,side,theta):
     global scale_factor
     global interface_theta, interface_slices
-    global mesh_size, mesh_size_boundaries
+    global mesh_size
 
     # general parameters
     scale_factor = 1e+12
     interface_theta = theta
     interface_slices = 360/interface_theta
     mesh_size = 0
-    mesh_size_boundaries = [0,0,0,0]
 
     # interface length based on starting and ending points
     num_p_segments = len(p_dict.keys())
@@ -386,6 +375,6 @@ def gen_interface_mesh(p_dict,params,side,theta):
     for all_points in points_list:
         for pt, i in zip(all_points,range(len(all_points))): all_points[i]=(np.array(pt)/scale_factor).tolist()
     
-    return [points_list,element_list,index_range_list]
+    return [points_list,element_list,index_range_list,mesh_size]
 #end
 

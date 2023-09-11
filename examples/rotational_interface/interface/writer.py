@@ -11,7 +11,20 @@ def write_mesh_cgns(filename, c_data):
     import CGNS.PAT.cgnskeywords as CK
 
     num_points = len(c_data[0])
-    num_elem = len(c_data[1][0][1])+len(c_data[1][1][1])
+    num_elem_type = len(c_data[1])
+    
+    if num_elem_type == 2:
+        num_elem = len(c_data[1][0][1])+len(c_data[1][1][1])
+        tri_status = True
+        quad_status = True
+    else:
+        num_elem = len(c_data[1][0][1])
+        if c_data[1][0][0] == 'triangle':
+            tri_status = True
+            quad_status = False
+        elif c_data[1][0][0] == 'quad':
+            quad_status = True
+            tri_status = False
     
     # tree - base - zone and grid coordinates
     T = CGL.newCGNSTree(version=3.2)
@@ -30,23 +43,22 @@ def write_mesh_cgns(filename, c_data):
     CGL.newDataArray(gc,CK.CoordinateZ_s,z_array)
 
     # connectivities
-    tri_conn = np.array(c_data[1][0][1])
-    tri_range = tri_conn.shape[0]
-    tri_array = tri_conn.reshape(tri_range*3) + 1
-    tri_start = 1 + tri_conn[0][0]
-    tri_end = tri_start + tri_range - 1
-    tri_rng_array = np.array([tri_start,tri_end])
-
-    quad_conn = np.array(c_data[1][1][1])
-    quad_range = quad_conn.shape[0]
-    quad_array = quad_conn.reshape(quad_range*4) + 1
-    quad_start = tri_end + quad_conn[0][0]
-    quad_end = quad_start + quad_range - 1
-    quad_rng_array = np.array([quad_start,quad_end])
-
-    # elements
-    CGL.newElements(Z,'Elem_Triangles',CK.TRI_3,tri_rng_array,tri_array)
-    CGL.newElements(Z,'Elem_Quads',CK.QUAD_4,quad_rng_array,quad_array)
+    if tri_status:
+        tri_conn = np.array(c_data[1][0][1])
+        tri_range = tri_conn.shape[0]
+        tri_array = tri_conn.reshape(tri_range*3) + 1
+        tri_start = 1 + tri_conn[0][0]
+        tri_end = tri_start + tri_range - 1
+        tri_rng_array = np.array([tri_start,tri_end])
+        CGL.newElements(Z,'Elem_Triangles',CK.TRI_3,tri_rng_array,tri_array)
+    if quad_status:
+        quad_conn = np.array(c_data[1][1][1])
+        quad_range = quad_conn.shape[0]
+        quad_array = quad_conn.reshape(quad_range*4) + 1
+        quad_start = tri_end + quad_conn[0][0]
+        quad_end = quad_start + quad_range - 1
+        quad_rng_array = np.array([quad_start,quad_end])
+        CGL.newElements(Z,'Elem_Quads',CK.QUAD_4,quad_rng_array,quad_array)
 
     # zone_bc for boundary condition
     elm_array = np.array([[i+1 for i in range(num_elem)]])
@@ -83,6 +95,5 @@ def write_mesh(mesh,m_name):
 
     #exporting the mesh interface
     print(f"Interface is exported: {output_name}.{mesh_ext}")
-    # print(f"Number of points: {mesh_size}")
-    # print(f"Number of elements: {mesh_size}")
+    print(f"Number of elements: {mesh[-1]}")
 #end

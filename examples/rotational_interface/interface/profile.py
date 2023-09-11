@@ -125,7 +125,6 @@ def apply_distribution(points,dist,seg_type):
 
 # generates the mesh for segments based on their spacing
 def define_segment_mesh(iseg,seg_type,points,dist):
-# def gen_mesh(points,dist,iseg,seg_type):
     # adding the third zero dimension to 2d points and converting them to array
     points_3d = np.append(np.array(points),np.zeros([len(points),1]),1)
     # starting and ending points of a segment
@@ -150,8 +149,6 @@ def define_segment_mesh(iseg,seg_type,points,dist):
     points_t = trsf.rotatePointZ(points_rt,np.deg2rad(theta))
     # undo translate
     mesh_points = trsf.translatePoints(points_t,start_p[0],start_p[1],0)
-    # plt.plot(np.array(mesh_points)[:,0],np.array(mesh_points)[:,1],'ob')
-    # plt.show()
     return mesh_points
 #end
 
