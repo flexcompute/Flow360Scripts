@@ -8,9 +8,9 @@
             "center": [1.5,0,0],
             "axis": [1,0,0],
             "maxEdgeLength": 0.022,
-            "refinementFactor": 1.0,
+            "refinementFactor": 0.6,
             "frontFixedDistributionLayers": 1,
-            "backFixedDistributionLayers": 2
+            "backFixedDistributionLayers": 0
         },
         "spacing": {
             "profileSegments": {

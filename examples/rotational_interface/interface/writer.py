@@ -96,4 +96,5 @@ def write_mesh(mesh,m_name):
     #exporting the mesh interface
     print(f"Interface is exported: {output_name}.{mesh_ext}")
     print(f"Number of elements: {mesh[-1]}")
+    print(f'Number of mesh points: {len(combined_data[0])}')
 #end

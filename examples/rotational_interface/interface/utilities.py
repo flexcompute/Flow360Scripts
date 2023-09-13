@@ -59,10 +59,11 @@ def get_shrink_list(start_dim,end_dim,r_delta,i_ring,n_rings):
             if len(shrink_ring_ids) < abs(shrink_num):
                 delta_s = shrink_num - len(shrink_ring_ids)
                 shrink_id_new = len(shrink_ring_ids) // 2
-                shrink_list_new = shrink_ring_ids[0:shrink_id_new]
-                shrink_freq_update = int(np.floor((shrink_list_new[0] - shrink_list_new[-1]) / (len(shrink_list_new)+delta_s) ))
-                shrink_ring_ids_new = [i for i in range(shrink_list_new[0],shrink_list_new[-1],shrink_freq_update)]
-                shrink_ring_ids = shrink_ring_ids_new + shrink_ring_ids[shrink_id_new:]
+                if shrink_id_new > 0:
+                    shrink_list_new = shrink_ring_ids[0:shrink_id_new]
+                    shrink_freq_update = int(np.floor((shrink_list_new[0] - shrink_list_new[-1]) / (len(shrink_list_new)+delta_s) ))
+                    shrink_ring_ids_new = [i for i in range(shrink_list_new[0],shrink_list_new[-1],shrink_freq_update)]
+                    shrink_ring_ids = shrink_ring_ids_new + shrink_ring_ids[shrink_id_new:]
             return [True,shrink_ring_ids]
         else:
             return [False,[0]]
@@ -85,11 +86,12 @@ def cal_starting_elements(ref,m_edge,s_point,e_point,f_center,b_center,n_slice):
     f_starts_center = False
     b_starts_center = False
     # max tri and min tri added 
-    max_tri_added = 18
+    max_tri_added = 8
     min_tri_added = 4
-    if (np.array(s_point_coords) == np.array(f_center)).all():
+    tol = 0.1
+    if np.linalg.norm(np.array(s_point_coords) - np.array(f_center)) < tol:
         f_starts_center = True
-    if (np.array(e_point_coords) == np.array(b_center)).all():
+    if np.linalg.norm(np.array(e_point_coords) - np.array(b_center)) < tol:
         b_starts_center = True
     # initial number of edges calculation for front
     if f_starts_center:

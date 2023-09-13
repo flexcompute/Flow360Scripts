@@ -10,7 +10,7 @@
             "maxEdgeLength": 0.05,
             "refinementFactor": 1.0,
             "frontFixedDistributionLayers": 2,
-            "backFixedDistributionLayers": 18
+            "backFixedDistributionLayers": 5
         },
         "spacing": {
             "profileSegments": {
@@ -44,7 +44,7 @@
                 },
                 "7": {
                     "cellType": "quad",
-                    "stretching": [0.04,1.1,0.001,1.25,0.05]
+                    "stretching": [0.04,1.1,0.005,1.25,0.05]
                 }
             }
         }

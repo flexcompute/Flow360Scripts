@@ -7,10 +7,10 @@
         "properties": {
             "center": [1.5,1.25,-2.5],
             "axis": [1,0,0],
-            "maxEdgeLength": 0.05,
-            "refinementFactor": 0.2,
+            "maxEdgeLength": 0.1,
+            "refinementFactor": 0.25,
             "frontFixedDistributionLayers": 1,
-            "backFixedDistributionLayers": 1
+            "backFixedDistributionLayers": 0
         },
         "spacing": {
             "profileSegments": {
@@ -24,7 +24,7 @@
                 },
                 "2": {
                     "cellType": "tri",
-                    "stretching": [0.08,1.0,0.02,1.2,0.05]
+                    "stretching": [0.05,1.0,0.02,1.25,0.03]
                 }
             }
         }

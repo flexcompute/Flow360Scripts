@@ -2,29 +2,29 @@
     "interface": {
         "general": {
             "type": "profile",
-            "inputProfile": "examples/profiles/cylinder.dat"
+            "inputProfile": "examples/profiles/cylinder_xv15.dat"
         },
         "properties": {
-            "center": [0.375,0,0],
-            "axis": [1,0,0],
-            "maxEdgeLength": 0.1,
-            "refinementFactor": 0.2,
-            "frontFixedDistributionLayers": 1,
+            "center": [0,0,0],
+            "axis": [0,0,1],
+            "maxEdgeLength": 0.5,
+            "refinementFactor": 0.3,
+            "frontFixedDistributionLayers": 0,
             "backFixedDistributionLayers": 1
         },
         "spacing": {
             "profileSegments": {
                 "0": {
                     "cellType": "tri",
-                    "stretching": [0.01,1.2,0.05,1.1,0.05]
+                    "stretching": [0.1,1.2,0.1,1.1,0.2]
                 },
                 "1": {
                     "cellType": "tri",
-                    "stretching": [0.05,1.01,0.05,1.01,0.05]
+                    "stretching": [0.1,1.01,0.1,1.01,0.2]
                 },
                 "2": {
                     "cellType": "tri",
-                    "stretching": [0.06,1.1,0.02,1.2,0.05]
+                    "stretching": [0.1,1.1,0.1,1.2,0.2]
                 }
             }
         }

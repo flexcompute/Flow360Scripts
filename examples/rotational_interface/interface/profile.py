@@ -127,6 +127,8 @@ def apply_distribution(points,dist,seg_type):
 def define_segment_mesh(iseg,seg_type,points,dist):
     # adding the third zero dimension to 2d points and converting them to array
     points_3d = np.append(np.array(points),np.zeros([len(points),1]),1)
+    # length of the segment
+    seg_length = utlz.get_cumulative_distance(points_3d)[-1]
     # starting and ending points of a segment
     start_p = points_3d[0]
     end_p = points_3d[-1]
@@ -140,7 +142,7 @@ def define_segment_mesh(iseg,seg_type,points,dist):
     scale_one = 1/points_rt[-1][0]
     points_srt = trsf.scalePoints(points_rt,scale_one)
     # linear distribution between 0 and 1
-    line_dist = gen_line_distribution(1,dist,iseg)
+    line_dist = gen_line_distribution(seg_length,dist,iseg)
     # apply the distribution to the curve
     line_mesh = apply_distribution(points_srt,line_dist,seg_type)
     # undo scaling
@@ -189,11 +191,12 @@ def gen_segment_dict(p_file,gen_spc,spc_in):
     for iseg in range(num_segments):
         # tries to fetch spacing per segment
         try:
-            profile_spacing[iseg] = [spc_in[f'{iseg}']['cellType'],spc_in[f'{iseg}']['stretching']]
+            seg_stretch = spc_in[f'{iseg}']['stretching']
+            profile_spacing[iseg] = [spc_in[f'{iseg}']['cellType'],seg_stretch]
         except:
             # applies the general spacing when not provided
             print(f'General spacing is applied. Spacing is not defined for segment {iseg}!')
-            profile_spacing[iseg] = ["tri", [gen_spc,1,gen_spc,1,gen_spc]]
+            profile_spacing[iseg] = ["tri", [gen_spc,1.0,gen_spc,1.0,gen_spc]]
     # generates a dict for segments: type,points,spacing,mesh
     segment_dict = {}
     for iseg in range(num_segments):
@@ -216,6 +219,8 @@ def gen_profile_dict(seg_dict):
     y_min_box = []
     y_max_box = []
     num_seg = len(seg_dict.keys())
+    start_x = seg_dict[0][1][0][0]
+    end_x = seg_dict[num_seg-1][1][-1][0]
     for iseg in range(num_seg):
         x_min_box.append(seg_dict[iseg][2][0])
         x_max_box.append(seg_dict[iseg][2][1])
@@ -225,22 +230,27 @@ def gen_profile_dict(seg_dict):
     p_x_max = max(x_max_box)
     p_y_min = min(y_min_box)
     p_y_max = max(y_max_box)
-    p_x_mid = 0.5 * (p_x_max+p_x_min)
-    p_y_mid = 0.5 * (p_y_max+p_y_min)
-    p_y_75 = 0.75 * (p_y_max-p_y_min) + p_y_min
-    for iseg in range(num_seg):
-        seg_x_max = seg_dict[iseg][2][1]
-        seg_x_min = seg_dict[iseg][2][0]
-        seg_y_min = seg_dict[iseg][2][2]
-        seg_y_max = seg_dict[iseg][2][3]
-        seg_y_mid = 0.5 * (seg_y_max + seg_y_min)
-        if seg_x_max <= p_x_mid and seg_y_mid <= p_y_75:
-            profile_dict[iseg] = ["front",seg_dict[iseg]]
-        elif seg_y_mid >= p_y_75:
-            profile_dict[iseg] = ["side",seg_dict[iseg]]
-        try:
-            profile_dict[iseg][0]
-        except KeyError:
-            profile_dict[iseg] = ["back",seg_dict[iseg]]
+    delta_seg = num_seg // 3
+    i_front = y_max_box.index(p_y_max)
+    i_rest = num_seg - i_front - 1
+    i_back = i_front + i_rest // 4
+    i_mid = num_seg // 2 - 1
+    i_25 = i_mid // 2 - 1
+    i_75 = i_mid + i_25
+    if delta_seg == 1:
+        profile_dict[0] = ["front",seg_dict[0]]
+        profile_dict[1] = ["side",seg_dict[1]]
+        profile_dict[2] = ["back",seg_dict[2]]
+    elif delta_seg>1:
+        for iseg in range(num_seg):
+            if iseg <= i_front:
+                profile_dict[iseg] = ["front",seg_dict[iseg]]
+            elif iseg <= i_back:
+                profile_dict[iseg] = ["side",seg_dict[iseg]]
+            else:
+                profile_dict[iseg] = ["back",seg_dict[iseg]]
+    else:
+        print("For profile interface type there must be at least three segments. Aborted!")
+        exit()
     return profile_dict
 #end
