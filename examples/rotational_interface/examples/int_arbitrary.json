@@ -1,0 +1,68 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/arbitrary.dat"
+        },
+        "properties": {
+            "center": [1.0,0,0],
+            "axis": [1,0,0],
+            "maxEdgeLength": 0.05,
+            "refinementFactor": 0.9,
+            "frontFixedDistributionLayers": 15,
+            "backFixedDistributionLayers": 15
+        },
+        "spacing": {
+            "profileSegments": {
+                "0": {
+                    "cellType": "quad",
+                    "stretching": [0.001,1.25,0.2,1.05,0.1]
+                },
+                "1": {
+                    "cellType": "quad",
+                    "stretching": [0.08,1.1,0.08,1.1,0.1]
+                },
+                "2": {
+                    "cellType": "quad",
+                    "stretching": [0.08,1.1,0.08,1.1,0.1]
+                },
+                "3": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.1,0.1,1.1,0.1]
+                },
+                "4": {
+                    "cellType": "quad",
+                    "stretching": [0.08,1.01,0.08,1.01,0.1]
+                },
+                "5": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.2,0.1,1.2,0.1]
+                },
+                "6": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.2,0.1,1.2,0.1]
+                },
+                "7": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.2,0.1,1.2,0.1]
+                },
+                "8": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.1,0.1,1.1,0.1]
+                },
+                "9": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.2,0.2,1.2,0.1]
+                },
+                "10": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.1,0.1,1.1,0.1]
+                },
+                "11": {
+                    "cellType": "quad",
+                    "stretching": [0.1,1.1,0.001,1.1,0.1]
+                }
+            }
+        }
+    }
+}
