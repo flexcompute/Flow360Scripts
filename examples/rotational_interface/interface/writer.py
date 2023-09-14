@@ -93,8 +93,10 @@ def write_mesh(mesh,m_name):
     else:
         write_mesh_meshio(output_name + '.' + mesh_ext ,combined_data)
 
+    mesh_points = len(combined_data[0]) - mesh[-1][0] + mesh[-1][1] + 6
+    
     #exporting the mesh interface
     print(f"Interface is exported: {output_name}.{mesh_ext}")
-    print(f"Number of elements: {mesh[-1]}")
-    print(f'Number of mesh points: {len(combined_data[0])}')
+    print(f"Number of elements: {mesh[-2]}")
+    print(f'Number of mesh points: {mesh_points}')
 #end

@@ -52,6 +52,7 @@ def get_shrink_list(start_dim,end_dim,r_delta,i_ring,n_rings):
     else:
         # shrink freq
         shrink_freq = int(np.floor((n_rings - i_ring) / shrink_num ))
+        if shrink_freq == 0: shrink_freq=1
         # lists of shrinking ring ids
         shrink_ring_ids = [i for i in range(n_rings,i_ring,shrink_freq)]
         if len(shrink_ring_ids) !=0:
@@ -62,11 +63,54 @@ def get_shrink_list(start_dim,end_dim,r_delta,i_ring,n_rings):
                 if shrink_id_new > 0:
                     shrink_list_new = shrink_ring_ids[0:shrink_id_new]
                     shrink_freq_update = int(np.floor((shrink_list_new[0] - shrink_list_new[-1]) / (len(shrink_list_new)+delta_s) ))
+                    if shrink_freq_update == 0: shrink_freq_update=1
                     shrink_ring_ids_new = [i for i in range(shrink_list_new[0],shrink_list_new[-1],shrink_freq_update)]
                     shrink_ring_ids = shrink_ring_ids_new + shrink_ring_ids[shrink_id_new:]
             return [True,shrink_ring_ids]
         else:
             return [False,[0]]
+#end
+
+# calculate a list of ring numbers over which reverse growing happens
+def get_rev_growth_list(start_dim,end_dim,r_delta,i_ring,n_rings):
+    # number of times it must be grown to reach the target dimension
+    grown_num = int(np.floor((end_dim - start_dim) / r_delta))
+    if grown_num <= 0 or n_rings < 1:
+        return [False,[0],[False,[0]]]
+    else:
+        # initial growth freq estimation
+        growth_freq = int(np.floor((n_rings - i_ring) / grown_num ))
+        if growth_freq == 0: growth_freq=1
+        # lists of rev growing ring ids
+        grown_ring_ids = [i for i in range(i_ring,n_rings,growth_freq)]
+        if len(grown_ring_ids) !=0:
+            # when number of rev growth times doesn't match
+            if len(grown_ring_ids) < abs(grown_num):
+                # difference to cover
+                delta_g = grown_num - len(grown_ring_ids)
+                # over the half og the ids
+                grown_id_new = len(grown_ring_ids) // 2
+                # getting new growth ids
+                if grown_id_new > 0:
+                    growth_list_new = grown_ring_ids[0:grown_id_new]
+                    grown_freq_update = int(np.floor((growth_list_new[-1] - growth_list_new[0]) / (len(growth_list_new)+delta_g) ))
+                    if grown_freq_update == 0: grown_freq_update=1 
+                    grown_ring_ids_new = [i for i in range(growth_list_new[0],growth_list_new[-1]+1,grown_freq_update)]
+                    # final growth ids to meet the target dimension
+                    grown_ring_ids = grown_ring_ids_new + grown_ring_ids[grown_id_new:]
+            # in case target dimension cannot reach with one node per element addition
+            if len(grown_ring_ids) < abs(grown_num):
+                delta_g = abs(grown_num) - len(grown_ring_ids)
+                if delta_g != 0:
+                    growth_d2_freq = int(np.floor((n_rings - i_ring) / delta_g ))
+                    growth_d2_ring_ids = [i for i in range(i_ring,n_rings,growth_d2_freq)]
+                    # rings to add two nodes per element
+                    d2_growth = [True,growth_d2_ring_ids]
+            else:
+                d2_growth = [False,[0]]
+            return [True,grown_ring_ids,d2_growth]
+        else:
+            return [False,[0],[False,[0]]]
 #end
 
 def cal_min_initial_tri(s_point,f_center,n_slice,m_edge,max_tri,min_tri):
@@ -86,7 +130,7 @@ def cal_starting_elements(ref,m_edge,s_point,e_point,f_center,b_center,n_slice):
     f_starts_center = False
     b_starts_center = False
     # max tri and min tri added 
-    max_tri_added = 8
+    max_tri_added = 18
     min_tri_added = 4
     tol = 0.1
     if np.linalg.norm(np.array(s_point_coords) - np.array(f_center)) < tol:
@@ -113,7 +157,7 @@ def combine_domains(mesh):
     pt_list = mesh[0]
     elm_list = mesh[1]
     ind_list = mesh[2]
-    
+    ind_list[-1] = ind_list[-1]
     # checks element ids and points agree
     try:
         assert len(pt_list) == len(elm_list)

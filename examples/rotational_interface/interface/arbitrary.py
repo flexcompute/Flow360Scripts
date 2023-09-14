@@ -8,20 +8,33 @@ def gen_profile_mesh(profile_dict,params):
     interface_bottom = mesher.gen_interface_mesh(profile_dict,params,"bottom",180)
     interface_mesh_points = interface_top[0] + interface_bottom[0]
     interface_mesh_elements = interface_top[1] + interface_bottom[1]
-    interface_mesh_index = interface_top[2][:-1] + interface_bottom[2][:-1]
+    interface_mesh_index = interface_top[2][:-2] + interface_bottom[2][:-2]
     mesh_size = interface_top[3] + interface_bottom[3]
+    mesh_b_points = interface_top[4][0] + interface_bottom[4][0]
+    mesh_b_shared = interface_top[4][1]
 
     # combining srf mesh indices 
     index_list = np.cumsum(interface_mesh_index)
     index_combined = []
-    index_diff = [0,0,1,2,2,3]
+    # open and closed
+    index_diff_oc = [0,0,1,2,2,3]
+    # closed and closed
+    index_diff_cc = [0,1,2,3,4,5]
+    # closed and open
+    index_diff_co = [0,1,2,2,3,4]
+    # open and open
+    index_diff_oo = [0,0,1,1,1,2]
     for i in range(0,len(index_list),2): index_combined.append(index_list[i])
-    if interface_top[2][-1]:
-        for i in range(len(index_combined)):
-            index_combined[i]+=i
+    # index diff for domain combination
+    if not interface_top[2][-1] and not interface_top[2][-2]:
+        index_combined = list(np.array(index_combined)+np.array(index_diff_oo))
+    elif not interface_top[2][-1] and interface_top[2][-2]:
+        index_combined = list(np.array(index_combined)+np.array(index_diff_co))
+    elif interface_top[2][-1] and not interface_top[2][-2]:
+        index_combined = list(np.array(index_combined)+np.array(index_diff_oc))
     else:
-        index_combined = list(np.array(index_combined)+np.array(index_diff))
-    return [interface_mesh_points,interface_mesh_elements,index_combined,mesh_size]
+        index_combined = list(np.array(index_combined)+np.array(index_diff_cc))
+    return [interface_mesh_points,interface_mesh_elements,index_combined,mesh_size,[mesh_b_points,mesh_b_shared]]
 #end
 
 # generates the interface mesh based on input profile

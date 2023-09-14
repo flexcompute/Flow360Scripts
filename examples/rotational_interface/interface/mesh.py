@@ -23,9 +23,12 @@ def get_ring_connection(ringId,ring_delta,cent_status,m_index,m_points,m_type):
     c_ring_num_edgs = c_ring_dim - 1
     c_edgs_per_segment = int(c_ring_num_edgs / ring_delta)
     
+    d2_ring = False
     # points growing or not
     if p_ring_dim < c_ring_dim:
         growth = 'grow'
+        if (c_ring_dim-p_ring_dim)/ring_delta == 2.0:
+            d2_ring = True
     elif p_ring_dim > c_ring_dim:
         growth = 'shrink'
     else:
@@ -70,6 +73,13 @@ def get_ring_connection(ringId,ring_delta,cent_status,m_index,m_points,m_type):
                 nodeId_1 = grp_A_id[gId][i]
                 nodeId_2 = grp_A_id[gId][i+1]
                 nodeId_3 = grp_B_id[gId][i+1]
+                mesh_tri_elements.append([nodeId_1, nodeId_2, nodeId_3])
+                mesh_size += 1
+            if d2_ring:
+                j = p_edgs_per_segment
+                nodeId_1 = grp_A_id[gId][j]
+                nodeId_2 = grp_B_id[gId][j+1]
+                nodeId_3 = grp_B_id[gId][j+2]
                 mesh_tri_elements.append([nodeId_1, nodeId_2, nodeId_3])
                 mesh_size += 1
         elif growth == 'shrink':
@@ -139,7 +149,7 @@ def get_face_distribution(pdict,f):
 #end
 
 # generates the rotational interface mesh
-def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m_edge,shrink,i_tri):
+def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m_edge,growth,i_tri):
 
     global mesh_tri_elements, mesh_quad_elements
     # global consecutive_dist
@@ -187,6 +197,7 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
     dim_ring_delta = i_tri
     # number of the mesh points on the first ring
     dim_ring = f_start_ring[2]
+    last_dim = f_start_ring[3]
 
     # checks if input fixed layers exceed the number of rings
     num_rings = len(face_points)
@@ -194,8 +205,10 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
         print('Number of layers with fixed circumferential distribution cannot exceed the number of rings. Fixed layers are set to 1!')
         n_fixed =1
 
-    # calculating shrink parameters
+    # calculating shrink and growth parameters
     shrink_list = utlz.get_shrink_list(dim_ring,1+dim_ring_delta,dim_ring_delta,1,num_rings-n_fixed)
+    growth_list = utlz.get_rev_growth_list(dim_ring,last_dim,dim_ring_delta,2+n_fixed,num_rings)
+
     # looping over concentric rings
     for i_ring in range(1,num_rings):
         # per ring properties
@@ -204,17 +217,32 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
         ring_radius = abs(y_i - f_center[1])
         edge_length_ring = utlz.cal_ring_max_edge(ring_radius,num_slice,dim_ring)
 
-        if shrink and shrink_list[0]:
-            # shrinking and growing in back face
-            if i_ring in shrink_list[1]:
-                if dim_ring - dim_ring_delta > 1:
-                    dim_ring -= dim_ring_delta
+        if growth == 'Shrink':
+            if shrink_list[0]:
+                # shrinking and growing in back face
+                if i_ring in shrink_list[1]:
+                    if dim_ring - dim_ring_delta > 1:
+                        dim_ring -= dim_ring_delta
+        elif growth == 'RevGrow':
+            if growth_list[0]:
+                # reverse growing in back face
+                if i_ring in growth_list[1]:
+                    if dim_ring + dim_ring_delta <= last_dim:
+                        dim_ring += dim_ring_delta
+            if growth_list[2][0]:
+                if i_ring in growth_list[2][1]:
+                    if dim_ring + dim_ring_delta <= last_dim:
+                        dim_ring += dim_ring_delta
         else:
             # fixes circum distribution over n number of layers
             if i_ring > n_fixed:
-                # if edge length on mesh ring exceed input max edge length add points; otherwise constant
-                if edge_length_ring > m_edge:
-                    dim_ring += dim_ring_delta
+                if i_ring > 1:
+                    # if edge length on mesh ring exceed input max edge length add points; otherwise constant
+                    if edge_length_ring > m_edge:
+                        dim_ring += dim_ring_delta
+                    if edge_length_ring < m_edge:
+                        if dim_ring - dim_ring_delta > 1:
+                            dim_ring -= dim_ring_delta
         
         # theta per mesh point in radians
         theta_per_point = np.deg2rad(slice_theta / (dim_ring - 1))
@@ -242,7 +270,7 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
         ref_distance = consecutive_dist[-1]
         # checking consecutive distance within scale of e+12 not exceeds 1
         utlz.check_consecutive_mesh_distance(i_ring,ref_distance,consecutive_dist)
-    
+
     # list of element connectivity
     connectivity = []
     # when there are tri adds them to connectivity
@@ -278,7 +306,7 @@ def gen_interface_mesh(p_dict,params,side,theta):
     interface_theta = theta
     interface_slices = 360/interface_theta
     mesh_size = 0
-    mesh_boundaries = [0,0,0,0]
+    mesh_boundaries = [0,0]
 
     # interface length based on starting and ending points
     num_p_segments = len(p_dict.keys())
@@ -286,7 +314,7 @@ def gen_interface_mesh(p_dict,params,side,theta):
     first_seg_point = [coord * scale_factor for coord in first_seg_point]
     last_seg_point = p_dict[num_p_segments-1][1][-1][-1]
     last_seg_point = [coord * scale_factor for coord in last_seg_point]
-    interface_length = abs(last_seg_point[0]-first_seg_point[0])
+    interface_length = last_seg_point[0]-first_seg_point[0]
     
     # interface properties
     interface_properties = params["properties"]
@@ -301,84 +329,97 @@ def gen_interface_mesh(p_dict,params,side,theta):
     center_interface = [0.5 * interface_length + first_seg_point[0],0,0]
     center_interface_position = [coord * scale_factor for coord in center_interface_position]
     max_edge_length = max_edge_length * scale_factor
-
+    
     # center of front and back mesh faces
     front_center = [center_interface[0] - interface_length * 0.5, center_interface[1], center_interface[2]]
     back_center = [center_interface[0] + interface_length * 0.5, center_interface[1], center_interface[2]]
-
+    
     # calculating first ring number of elements and face status
     f_init_tri,b_init_tri, f_center, b_center = utlz.cal_starting_elements(ring_ref_factor,max_edge_length,\
                                                                       first_seg_point,last_seg_point,front_center,back_center,interface_slices)
+    
     # profile points and their cell type for the front face from profile dict
     front_dist = get_face_distribution(p_dict,"front")
     side_dist = get_face_distribution(p_dict,"side")
     back_dist = get_face_distribution(p_dict,"back")
-
+    back_dist = [list(reversed(back_dist[0])),list(reversed(back_dist[1]))]
+    
     # starting id
     front_mesh_first_ring_ids = [0]
     # first ring dimension
     first_ring_dim = 1 + f_init_tri
+    last_ring_dim = 0
     # if the profile starting point is on rotational axis or not
     if f_center:
         front_mesh_first_ring_pts = [front_dist[0][0]]
-        mesh_boundaries[2] = 0
+        mesh_boundaries[0] += 0
     else:
         front_mesh_first_ring_pts = [front_center]
-        mesh_boundaries[2] = first_ring_dim
+        mesh_boundaries[0] += first_ring_dim
 
     # inputs for the first ring
-    front_mesh_first_ring = [front_mesh_first_ring_pts,front_mesh_first_ring_ids,first_ring_dim]
+    front_mesh_first_ring = [front_mesh_first_ring_pts,front_mesh_first_ring_ids,first_ring_dim,last_ring_dim]
 
     # generating the front face mesh
     front_mesh = gen_interface_face_mesh(side,front_center,f_center,front_dist,front_mesh_first_ring,\
-                                             f_fixed_layers,max_edge_length,False,f_init_tri)
-
+                                             f_fixed_layers,max_edge_length,"Free",f_init_tri)
+    
     # number of rings on the front face - points and ids
     front_mesh_num_rings = len(front_mesh[2][0].keys())
     front_mesh_last_ring_pts = front_mesh[2][0][front_mesh_num_rings-1]
     front_mesh_last_ring_ids = front_mesh[2][1][front_mesh_num_rings-1]
     # first ring dim for the side face
     first_ring_dim = len(front_mesh_last_ring_pts)
-    # inputs for the first ring
-    side_mesh_first_ring = [front_mesh_last_ring_pts,front_mesh_last_ring_ids,first_ring_dim]
-
+    last_ring_dim = 0
     # mesh boundary point collections
-    mesh_boundaries[0] = front_mesh_num_rings
-    mesh_boundaries[1] = front_mesh_num_rings
-    mesh_boundaries[3] = first_ring_dim
+    mesh_boundaries[0] += 2 * front_mesh_num_rings
+    mesh_boundaries[0] += first_ring_dim
+    mesh_boundaries[1] += 2 * front_mesh_num_rings
 
+    # inputs for the first ring
+    side_mesh_first_ring = [front_mesh_last_ring_pts,front_mesh_last_ring_ids,first_ring_dim,last_ring_dim]
     # generating the side face mesh
     side_mesh = gen_interface_face_mesh(side,center_interface,True,side_dist,side_mesh_first_ring,\
-                                                 0,max_edge_length,False,f_init_tri)
-    
+                                                 0,max_edge_length,"Free",f_init_tri)
+    # starting id
+    back_mesh_first_ring_ids = [0]
+    # first ring dimension
+    last_ring_dim = 1 + f_init_tri
+    # if the profile starting point is on rotational axis or not
+    if b_center:
+        back_mesh_first_ring_pts = [back_dist[0][0]]
+    else:
+        back_mesh_first_ring_pts = [back_center]
+
     # number of rings on the front face - points and ids
     side_mesh_num_rings = len(side_mesh[2][0].keys())
     side_mesh_last_ring_pts = side_mesh[2][0][side_mesh_num_rings-1]
     side_mesh_last_ring_ids = side_mesh[2][1][side_mesh_num_rings-1]
     # first ring dim for the side face
     first_ring_dim = len(side_mesh_last_ring_pts)
-    # inputs for the first ring
-    back_mesh_first_ring = [side_mesh_last_ring_pts,side_mesh_last_ring_ids,first_ring_dim]
 
     # mesh boundary point collections
-    mesh_boundaries[0] += side_mesh_num_rings
-    mesh_boundaries[1] += side_mesh_num_rings
-    mesh_boundaries[2] += len(side_mesh[2][0][1])
-    mesh_boundaries[3] += first_ring_dim
+    mesh_boundaries[0] += 2 * side_mesh_num_rings
+    mesh_boundaries[0] += len(side_mesh[2][0][1])
+    mesh_boundaries[0] += first_ring_dim 
+    mesh_boundaries[1] += 2 * side_mesh_num_rings
 
+    # inputs for the first ring
+    back_mesh_first_ring = [back_mesh_first_ring_pts,back_mesh_first_ring_ids,last_ring_dim,first_ring_dim]
     # generating the front face mesh
-    back_mesh = gen_interface_face_mesh(side,back_center,True,back_dist,back_mesh_first_ring,\
-                                             b_fixed_layers,max_edge_length,True,f_init_tri)
-
+    back_mesh = gen_interface_face_mesh(side,back_center,b_center,back_dist,back_mesh_first_ring,\
+                                             b_fixed_layers,max_edge_length,"RevGrow",f_init_tri)
     # mesh boundary point collections
     back_mesh_num_rings = len(back_mesh[2][0].keys())
-    mesh_boundaries[0] += back_mesh_num_rings
-    mesh_boundaries[1] += back_mesh_num_rings
-    mesh_boundaries[2] += first_ring_dim
+    mesh_boundaries[0] += 2 * back_mesh_num_rings
+    mesh_boundaries[0] += first_ring_dim
+    mesh_boundaries[1] += 2 * back_mesh_num_rings 
     if b_center: 
-        mesh_boundaries[3] += 0
+        mesh_boundaries[0] += 0
     else:
-        mesh_boundaries[3] += len(back_mesh[2][0][back_mesh_num_rings-1])
+        mesh_boundaries[0] += len(back_mesh[2][0][back_mesh_num_rings-1])
+
+    mesh_boundaries[0] -= len(front_mesh_last_ring_pts) + len(side_mesh_last_ring_pts)
 
     #transforming front face mesh according to the axis
     front_mesh_transform = trsf.transformMesh(front_mesh,angles_interface,center_interface,center_interface_position)
@@ -386,19 +427,17 @@ def gen_interface_mesh(p_dict,params,side,theta):
     side_mesh_transform = trsf.transformMesh(side_mesh,angles_interface,center_interface,center_interface_position)
     #transforming side face mesh according to axis
     back_mesh_transform = trsf.transformMesh(back_mesh,angles_interface,center_interface,center_interface_position)
+
     #list of mesh points per face
     points_list = [front_mesh_transform[0],side_mesh_transform[0],back_mesh_transform[0]]
     #list of mesh indices per face
     element_list = [front_mesh_transform[1],side_mesh_transform[1],back_mesh_transform[1]]
-    index_range_list = [front_mesh[-1],side_mesh[-1],back_mesh[-1],f_center]
+    index_range_list = [front_mesh[-1],side_mesh[-1],back_mesh[-1],f_center,b_center]
     
     # scaling back all float values
     for all_points in points_list:
         for pt, i in zip(all_points,range(len(all_points))): all_points[i]=(np.array(pt)/scale_factor).tolist()
     
     # mesh boundary point collections
-    mesh_boundaries[0] -= 2
-    mesh_boundaries[1] -= 2
-    return [points_list,element_list,index_range_list,mesh_size]
+    return [points_list,element_list,index_range_list,mesh_size,mesh_boundaries]
 #end
-

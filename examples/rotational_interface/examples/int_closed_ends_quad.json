@@ -7,10 +7,10 @@
         "properties": {
             "center": [1.5,0.5,1.0],
             "axis": [1,0,0],
-            "maxEdgeLength": 0.02,
-            "refinementFactor": 1.0,
+            "maxEdgeLength": 0.1,
+            "refinementFactor": 0.2,
             "frontFixedDistributionLayers": 2,
-            "backFixedDistributionLayers": 0
+            "backFixedDistributionLayers": 2
         },
         "spacing": {
             "profileSegments": {

@@ -2,14 +2,14 @@
     "interface": {
         "general": {
             "type": "profile",
-            "inputProfile": "examples/profiles/cylinder_xv15.dat"
+            "inputProfile": "examples/profiles/cylinder.dat"
         },
         "properties": {
-            "center": [0,0,0],
+            "center": [-1,1,-0.5],
             "axis": [0,0,1],
-            "maxEdgeLength": 0.5,
-            "refinementFactor": 0.3,
-            "frontFixedDistributionLayers": 0,
+            "maxEdgeLength": 0.1,
+            "refinementFactor": 0.2,
+            "frontFixedDistributionLayers": 1,
             "backFixedDistributionLayers": 1
         },
         "spacing": {
