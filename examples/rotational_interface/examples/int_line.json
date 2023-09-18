@@ -1,0 +1,24 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/line.dat"
+        },
+        "properties": {
+            "center": [
+                400.0,
+                600.0,
+                1500.0
+            ],
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "maxEdgeLength": 80.0,
+            "refinementFactor": 1,
+            "frontFixedDistributionLayers": 0,
+            "backFixedDistributionLayers": 0
+        }
+    }
+}

@@ -1,0 +1,128 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/localRefinement.dat"
+        },
+        "properties": {
+            "center": [
+                4775.2,
+                6606.219943393997,
+                1569.87738
+            ],
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "maxEdgeLength": 50.0,
+            "refinementFactor": 0.4,
+            "frontFixedDistributionLayers": 0,
+            "backFixedDistributionLayers": 0
+        },
+        "spacing": {
+            "profileSegments": {
+                "0": {
+                    "cellType": "tri",
+                    "stretching": [
+                        5.5,
+                        1.1,
+                        5.5,
+                        1.0,
+                        10.0
+                    ]
+                },
+                "1": {
+                    "cellType": "tri",
+                    "stretching": [
+                        5.5,
+                        1.1,
+                        10,
+                        1.0,
+                        16.0
+                    ]
+                },
+                "2": {
+                    "cellType": "tri",
+                    "stretching": [
+                        10,
+                        1.2,
+                        20,
+                        1.2,
+                        20.0
+                    ]
+                },
+                "3": {
+                    "cellType": "tri",
+                    "stretching": [
+                        20,
+                        1,
+                        20,
+                        1,
+                        20
+                    ]
+                },
+                "4": {
+                    "cellType": "tri",
+                    "stretching": [
+                        20,
+                        1.2,
+                        50,
+                        1.2,
+                        50.0
+                    ]
+                },
+                "5": {
+                    "cellType": "tri",
+                    "stretching": [
+                        50,
+                        1.2,
+                        20,
+                        1.1,
+                        50.0
+                    ]
+                },
+                "6": {
+                    "cellType": "tri",
+                    "stretching": [
+                        20,
+                        1.1,
+                        50,
+                        1.2,
+                        50.0
+                    ]
+                },
+                "7": {
+                    "cellType": "tri",
+                    "stretching": [
+                        50,
+                        1.1,
+                        15,
+                        1.1,
+                        50.0
+                    ]
+                },
+                "8": {
+                    "cellType": "tri",
+                    "stretching": [
+                        15.0,
+                        1.0,
+                        15.0,
+                        1.0,
+                        15.0
+                    ]
+                },
+                "9": {
+                    "cellType": "tri",
+                    "stretching": [
+                        15.0,
+                        1.05,
+                        5.5,
+                        1.15,
+                        15.0
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -36,6 +36,13 @@ def check_consecutive_mesh_distance(ringId,ref_distance,consecutive_dist):
         print(f"Distance between two consecutive nodes exceeds at {ringId} radial ring. Min Tol: {min(consecutive_dist_tol)}")
 #end
 
+def cal_refinement_factor(params):
+    ref_factor = dict_read_or_default(params,'refinementFactor',1)
+    if ref_factor < 1e-2:
+        ref_factor = 1e-2
+    return ref_factor
+#end
+
 def cal_ring_max_edge(r,n_slice,r_dim):
     # circumference of the current ring
     ring_circum = 2 * np.pi * r
@@ -103,6 +110,7 @@ def get_rev_growth_list(start_dim,end_dim,r_delta,i_ring,n_rings):
                 delta_g = abs(grown_num) - len(grown_ring_ids)
                 if delta_g != 0:
                     growth_d2_freq = int(np.floor((n_rings - i_ring) / delta_g ))
+                    if growth_d2_freq == 0: growth_d2_freq=1 
                     growth_d2_ring_ids = [i for i in range(i_ring,n_rings,growth_d2_freq)]
                     # rings to add two nodes per element
                     d2_growth = [True,growth_d2_ring_ids]
@@ -130,12 +138,12 @@ def cal_starting_elements(ref,m_edge,s_point,e_point,f_center,b_center,n_slice):
     f_starts_center = False
     b_starts_center = False
     # max tri and min tri added 
-    max_tri_added = 18
+    max_tri_added = 14
     min_tri_added = 4
-    tol = 0.1
-    if np.linalg.norm(np.array(s_point_coords) - np.array(f_center)) < tol:
+    tol = 1e-3
+    if s_point_coords[1] < tol:
         f_starts_center = True
-    if np.linalg.norm(np.array(e_point_coords) - np.array(b_center)) < tol:
+    if e_point_coords[1] < tol:
         b_starts_center = True
     # initial number of edges calculation for front
     if f_starts_center:

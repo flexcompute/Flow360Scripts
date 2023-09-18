@@ -13,4 +13,4 @@ Things to consider:
 5. The cgns is written via pyCGNS python package and it is necessary to have it installed. (pip install pyCGNS)
 6. Other formats are written via the meshio python package. (pip install meshio)
 
-Examples can be find in the examples directory. The corresponding input profiles are in the examples/profiles directory.
+Examples can be found in the examples directory. The corresponding input profiles are in the examples/profiles directory.

@@ -7,8 +7,8 @@
         "properties": {
             "center": [1.5,0.5,1.0],
             "axis": [1,0,0],
-            "maxEdgeLength": 0.1,
-            "refinementFactor": 0.5,
+            "maxEdgeLength": 0.05,
+            "refinementFactor": 0.8,
             "frontFixedDistributionLayers": 22,
             "backFixedDistributionLayers": 0
         },

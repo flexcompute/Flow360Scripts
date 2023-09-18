@@ -1,0 +1,24 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/zig_zag.dat"
+        },
+        "properties": {
+            "center": [
+                1.0,
+                1.0,
+                0.5
+            ],
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "maxEdgeLength": 0.05,
+            "refinementFactor": 0.3,
+            "frontFixedDistributionLayers": 0,
+            "backFixedDistributionLayers": 0
+        }
+    }
+}

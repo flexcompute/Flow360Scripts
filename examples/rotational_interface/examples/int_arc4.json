@@ -1,0 +1,16 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/arc4.dat"
+        },
+        "properties": {
+            "center": [1.5,1.25,-2.5],
+            "axis": [1,0,0],
+            "maxEdgeLength": 0.05,
+            "refinementFactor": 0.5,
+            "frontFixedDistributionLayers": 0,
+            "backFixedDistributionLayers": 0
+        }
+    }
+}

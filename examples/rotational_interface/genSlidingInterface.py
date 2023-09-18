@@ -10,7 +10,7 @@ def gen_rotational_interface(params):
     int_dict = params["interface"]
 
     #setting default in case they are not defined
-    int_type = utlz.dict_read_or_default(int_dict['general'],"type","cylinder")
+    int_type = utlz.dict_read_or_default(int_dict['general'],'type','profile')
 
     if int_type == 'profile':
         int_mesh = arb_int.gen_profile_interface(int_dict)

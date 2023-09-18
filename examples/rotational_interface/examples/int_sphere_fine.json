@@ -7,24 +7,24 @@
         "properties": {
             "center": [1.5,1.25,-2.5],
             "axis": [1,0,0],
-            "maxEdgeLength": 0.0125,
-            "refinementFactor": 0.75,
-            "frontFixedDistributionLayers": 1,
-            "backFixedDistributionLayers": 1
+            "maxEdgeLength": 0.07,
+            "refinementFactor": 1.0,
+            "frontFixedDistributionLayers": 0,
+            "backFixedDistributionLayers": 0
         },
         "spacing": {
             "profileSegments": {
                 "0": {
                     "cellType": "tri",
-                    "stretching": [0.01,1.2,0.01,1.01,0.01]
+                    "stretching": [0.07,1.0,0.07,1.0,0.07]
                 },
                 "1": {
                     "cellType": "tri",
-                    "stretching": [0.01,1.01,0.01,1.01,0.01]
+                    "stretching": [0.07,1.0,0.07,1.0,0.07]
                 },
                 "2": {
                     "cellType": "tri",
-                    "stretching": [0.01,1.01,0.01,1.2,0.01]
+                    "stretching": [0.07,1.0,0.07,1.0,0.07]
                 }
             }
         }

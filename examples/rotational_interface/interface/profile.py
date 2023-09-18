@@ -181,7 +181,7 @@ def define_segment_box(seg_points):
 #end
 
 # returns the profile dict including their mesh
-def gen_segment_dict(p_file,gen_spc,spc_in):
+def gen_segment_dict(p_file,gen_spc,spc_in,ref_f):
     # define segments in profile
     profile_segments = reader.read_interface_profile(p_file)
     # number of segments
@@ -190,13 +190,17 @@ def gen_segment_dict(p_file,gen_spc,spc_in):
     profile_spacing = {}
     for iseg in range(num_segments):
         # tries to fetch spacing per segment
-        try:
-            seg_stretch = spc_in[f'{iseg}']['stretching']
-            profile_spacing[iseg] = [spc_in[f'{iseg}']['cellType'],seg_stretch]
-        except:
+        if spc_in is not None:
+            try:
+                seg_stretch = spc_in['profileSegments'][f'{iseg}']['stretching']
+                for i in range(0,len(seg_stretch),2): seg_stretch[i] = seg_stretch[i] * (1/ref_f)
+                profile_spacing[iseg] = [spc_in['profileSegments'][f'{iseg}']['cellType'],seg_stretch]
+            except:
+                profile_spacing[iseg] = ["tri", [gen_spc * (1/ref_f), 1.0 ,gen_spc * (1/ref_f), 1.0 , gen_spc * (1/ref_f)]]
+        else:
             # applies the general spacing when not provided
             print(f'General spacing is applied. Spacing is not defined for segment {iseg}!')
-            profile_spacing[iseg] = ["tri", [gen_spc,1.0,gen_spc,1.0,gen_spc]]
+            profile_spacing[iseg] = ["tri", [gen_spc * (1/ref_f), 1.0 ,gen_spc * (1/ref_f), 1.0 , gen_spc * (1/ref_f)]]
     # generates a dict for segments: type,points,spacing,mesh
     segment_dict = {}
     for iseg in range(num_segments):
@@ -214,43 +218,46 @@ def gen_segment_dict(p_file,gen_spc,spc_in):
 # identifies if a segment is front, side or back
 def gen_profile_dict(seg_dict):
     profile_dict = {}
-    x_min_box = []
-    x_max_box = []
     y_min_box = []
     y_max_box = []
     num_seg = len(seg_dict.keys())
-    start_x = seg_dict[0][1][0][0]
-    end_x = seg_dict[num_seg-1][1][-1][0]
     for iseg in range(num_seg):
-        x_min_box.append(seg_dict[iseg][2][0])
-        x_max_box.append(seg_dict[iseg][2][1])
         y_min_box.append(seg_dict[iseg][2][2])
         y_max_box.append(seg_dict[iseg][2][3])
-    p_x_min = min(x_min_box)
-    p_x_max = max(x_max_box)
-    p_y_min = min(y_min_box)
     p_y_max = max(y_max_box)
-    delta_seg = num_seg // 3
-    i_front = y_max_box.index(p_y_max)
-    i_rest = num_seg - i_front - 1
-    i_back = i_front + i_rest // 4
-    i_mid = num_seg // 2 - 1
-    i_25 = i_mid // 2 - 1
-    i_75 = i_mid + i_25
-    if delta_seg == 1:
+    # index where front face finishes
+    for iseg in range(num_seg):
+        if y_max_box[iseg] == p_y_max:
+            i_front = iseg
+            break
+    p_y_min_diff = list(np.array(y_min_box)[1:] - np.array(y_min_box)[:-1])
+    p_y_min_diff.insert(0,0)
+    # index where back face starts
+    i_back = None
+    for iseg in range(i_front,num_seg):
+        if p_y_min_diff[iseg] < 0:
+            i_back = iseg
+            break
+    # number of segments and face categories
+    if num_seg == 1:
+        profile_dict[0] = ["front",seg_dict[0]]
+    elif num_seg == 2:
+        profile_dict[0] = ["front",seg_dict[0]]
+        profile_dict[1] = ["side",seg_dict[1]]
+    elif num_seg == 3:
         profile_dict[0] = ["front",seg_dict[0]]
         profile_dict[1] = ["side",seg_dict[1]]
         profile_dict[2] = ["back",seg_dict[2]]
-    elif delta_seg>1:
+    else:
         for iseg in range(num_seg):
+            # print(iseg)
             if iseg <= i_front:
                 profile_dict[iseg] = ["front",seg_dict[iseg]]
-            elif iseg <= i_back:
+            elif i_back is None and iseg > i_front:
+                profile_dict[iseg] = ["side",seg_dict[iseg]]
+            elif (iseg > i_front and iseg <= i_back):
                 profile_dict[iseg] = ["side",seg_dict[iseg]]
             else:
                 profile_dict[iseg] = ["back",seg_dict[iseg]]
-    else:
-        print("For profile interface type there must be at least three segments. Aborted!")
-        exit()
     return profile_dict
 #end

@@ -1,0 +1,36 @@
+{
+    "interface": {
+        "general": {
+            "type": "profile",
+            "inputProfile": "examples/profiles/two_lines.dat"
+        },
+        "properties": {
+            "center": [
+                400.0,
+                600.0,
+                1500.0
+            ],
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "maxEdgeLength": 20.0,
+            "refinementFactor": 0.2,
+            "frontFixedDistributionLayers": 0,
+            "backFixedDistributionLayers": 0
+        },
+        "spacing": {
+            "profileSegments": {
+                "0": {
+                    "cellType": "tri",
+                    "stretching": [5.5, 1.1, 8, 1.2, 8.0]
+                },
+                "1": {
+                    "cellType": "tri",
+                    "stretching": [15, 1.1, 15, 1.1, 20.0]
+                }
+            }
+        }
+    }
+}

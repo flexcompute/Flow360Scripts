@@ -5,10 +5,10 @@
             "inputProfile": "examples/profiles/cylinder.dat"
         },
         "properties": {
-            "center": [0,0,0],
+            "center": [-1,1,-0.5],
             "axis": [0,0,1],
             "maxEdgeLength": 0.05,
-            "refinementFactor": 0.5,
+            "refinementFactor": 0.4,
             "frontFixedDistributionLayers": 1,
             "backFixedDistributionLayers": 1
         },
@@ -16,15 +16,15 @@
             "profileSegments": {
                 "0": {
                     "cellType": "tri",
-                    "stretching": [0.1,1.2,0.25,1.1,0.2]
+                    "stretching": [0.1,1.2,0.1,1.1,0.2]
                 },
                 "1": {
                     "cellType": "tri",
-                    "stretching": [0.25,1.01,0.25,1.01,0.2]
+                    "stretching": [0.1,1.01,0.1,1.01,0.2]
                 },
                 "2": {
                     "cellType": "tri",
-                    "stretching": [0.15,1.2,0.05,1.25,0.2]
+                    "stretching": [0.1,1.1,0.1,1.2,0.2]
                 }
             }
         }
