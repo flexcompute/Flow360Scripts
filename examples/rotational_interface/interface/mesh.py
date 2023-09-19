@@ -241,11 +241,16 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
             if i_ring > n_fixed:
                 if i_ring > 1:
                     # if edge length on mesh ring exceed input max edge length add points; otherwise constant
+                    ds = np.linalg.norm(np.array(face_points[i_ring]) - np.array(face_points[i_ring-1]))
                     if (edge_length_ring > face_maxEdge[i_ring]) or (edge_length_ring > m_edge):
                         dim_ring += dim_ring_delta
-                    if (edge_length_ring < face_maxEdge[i_ring]) and (edge_length_ring < m_edge):
-                        if dim_ring - dim_ring_delta > 1:
-                            dim_ring -= dim_ring_delta
+                    elif edge_length_ring > ds:
+                        dim_ring += dim_ring_delta
+                    elif (edge_length_ring < ds) and (dim_ring - dim_ring_delta > 1):
+                        dim_ring -= dim_ring_delta
+                    # if (edge_length_ring < face_maxEdge[i_ring]) and (edge_length_ring < m_edge):
+                    #     if dim_ring - dim_ring_delta > 1:
+                    #         dim_ring -= dim_ring_delta
         
         # theta per mesh point in radians
         theta_per_point = np.deg2rad(slice_theta / (dim_ring - 1))

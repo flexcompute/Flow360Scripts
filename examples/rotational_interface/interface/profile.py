@@ -233,11 +233,12 @@ def gen_profile_dict(seg_dict):
     p_y_min_diff = list(np.array(y_min_box)[1:] - np.array(y_min_box)[:-1])
     p_y_min_diff.insert(0,0)
     # index where back face starts
-    i_back = None
-    for iseg in range(i_front,num_seg):
-        if p_y_min_diff[iseg] < 0:
-            i_back = iseg
-            break
+    # i_back = None
+    # for iseg in range(i_front,num_seg):
+    #     if p_y_min_diff[iseg] < 0:
+    #         i_back = iseg
+    #         break
+    i_back = num_seg - 1
     # number of segments and face categories
     if num_seg == 1:
         profile_dict[0] = ["front",seg_dict[0]]
@@ -251,12 +252,16 @@ def gen_profile_dict(seg_dict):
     else:
         for iseg in range(num_seg):
             # print(iseg)
-            if iseg <= i_front:
+            # if iseg <= i_front:
+            #     profile_dict[iseg] = ["front",seg_dict[iseg]]
+            # elif i_back is None and iseg > i_front:
+            #     profile_dict[iseg] = ["side",seg_dict[iseg]]
+            # elif (iseg > i_front and iseg <= i_back):
+            #     profile_dict[iseg] = ["side",seg_dict[iseg]]
+            # else:
+            #     profile_dict[iseg] = ["back",seg_dict[iseg]]
+            if iseg <= i_back:
                 profile_dict[iseg] = ["front",seg_dict[iseg]]
-            elif i_back is None and iseg > i_front:
-                profile_dict[iseg] = ["side",seg_dict[iseg]]
-            elif (iseg > i_front and iseg <= i_back):
-                profile_dict[iseg] = ["side",seg_dict[iseg]]
             else:
                 profile_dict[iseg] = ["back",seg_dict[iseg]]
     return profile_dict

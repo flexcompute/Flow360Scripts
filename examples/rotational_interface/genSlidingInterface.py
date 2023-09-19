@@ -20,11 +20,19 @@ def gen_rotational_interface(params):
     return int_mesh
 #end
 
-def main():
+def main(**kwargs):
     parser = argparse.ArgumentParser()
     parser.add_argument('-i','--input',help='Specify the input JSON file that describes the rotational interface.',type=str,required=True)
     parser.add_argument('-o','--output',help='Specify the output file name for the rotational interface.',type=str,required=True)
-    args = parser.parse_args()
+    if __name__ != "__main__":
+        idein = []
+        for var, val in kwargs.items():
+            if val is not None:
+                idein.extend(['--{}'.format(var)])
+                idein.extend(['{}'.format(val)])
+        args = parser.parse_args(idein)
+    else:
+        args = parser.parse_args()
     scriptDir = os.getcwd()
     
     # read interface parameters
