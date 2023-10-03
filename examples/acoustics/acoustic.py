@@ -9,9 +9,9 @@ import matplotlib.ticker as ticker
 
 def read_acoustic_file(a_csv):
     pressure_data = pd.read_csv(a_csv,skipinitialspace=True)
-    times = pressure_data['physical_time']
+    times = pressure_data['time']
     steps = pressure_data['physical_step']
-    p = pressure_data.iloc[:,2:]
+    p = pressure_data.iloc[:,2:-1]
     return [np.array(times),np.array(steps),np.array(p)]
 
 def filter_zero_data(time,steps,pressure,observerId):
@@ -63,7 +63,7 @@ def filter_zero_data(time,steps,pressure,observerId):
     end_index = min(last_elements)+1
 
     # physical time and step where all observers all non zero
-    acoustic_data['physical_time'] = time[start_index:end_index]
+    acoustic_data['time'] = time[start_index:end_index]
     acoustic_data['physical_step'] = steps[start_index:end_index]
 
     # non-zero acoustic data for all observers with the same physical time
@@ -72,10 +72,16 @@ def filter_zero_data(time,steps,pressure,observerId):
         acoustic_data[i] = p_observer[start_index:end_index]
     return [observerId_start,observerId_end,num_observers,acoustic_data]
 
-def cal_spl(sound_pressure):
-    # reference sound pressure in air
+# based on signal amplitude
+def cal_decibel_amplitude(p):
     p_ref = 2e-5
-    return 20 * np.log10(sound_pressure/p_ref)
+    return 20 * np.log10(p/p_ref)
+
+# based on signal power
+def cal_decibel_power(p):
+    p_ref = 2e-5
+    return 10 * np.log10(p / p_ref**2)
+#end
 
 def plot_response(name,freq,resp,key):
     fig, ax = plt.subplots()
@@ -126,7 +132,7 @@ def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
     # loop over observers
     for i in range(startId,endId,1):
         # get physical time from acoustic data
-        tt = acoustic_data['physical_time']
+        tt = acoustic_data['time']
         # get acoustic pressures for an observer
         pp = acoustic_data[i]
         # convert to dimensional pressure
@@ -136,7 +142,7 @@ def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
         # get the RMS for the pressure fluctuations
         p_rms = np.sqrt(np.mean((pp - p0)**2))
         # get the overall sound pressure based on pressure fluctuations
-        spl = cal_spl(p_rms)
+        spl = cal_decibel_amplitude(p_rms)
         # print oaspl
         print('Observer {} | OASPL: {:.5f} dB'.format(i,spl))
         # print oaspl in the file
@@ -148,8 +154,15 @@ def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
         window = np.hanning(len(pp))
         # windowing checks
         # window /= window.mean()
-        # window = 1 #no window
+        # window = np.ones(len(pp)) #no window
 
+        # sums for normalization purpose - equation 19 and 20
+        s1 = sum(window)
+        s2 = sum(window**2)
+        # sampling frequency - section 7
+        fs = 1/(mean_step_size/a_sound)
+        # effective noise bandwidth - equation 22
+        enbw = fs * (s2 / s1**2)
         # define the signal
         h =(pp - p0)*window
         # fft over the signal
@@ -161,14 +174,24 @@ def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
         freq = np.fft.fftfreq(N,d=mean_step_size/a_sound)
         freq_oneside = freq[:n_oneside]
         
+        # power spectrum - equation 23
+        psX = (2 * np.abs(X[:n_oneside])**2) / s1**2
+        # power spectrum density - equation 24
+        psdX = psX / enbw
+        # linear spectrum density - equation 25
+        lsdX = np.sqrt(psdX)
+        # linear spectrum - equation 26
+        lsX = np.sqrt(psX)
+
         # calculate the sound pressure level
-        response = cal_spl(np.abs(X[:n_oneside]))
+        # response = cal_decibel_amplitude(lsX)
+        response = cal_decibel_power(psX)
         
         # collect the spectrum for averaging between observers
-        avg_response += np.abs(response[:n_oneside])
+        avg_response += np.abs(response)
         
         # plot the response
-        plot_response(out_file,freq_oneside,response[:n_oneside],i)
+        plot_response(out_file,freq_oneside,response,i)
     
     # averaging the spectrum across all observers - which is useful in some cases 
     avg_response = avg_response/num_observers

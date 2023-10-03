@@ -1,4 +1,4 @@
-physical_time, physical_step, Observer_1_pressure, Observer_2_pressure, Observer_3_pressure
+time, physical_step, Observer_0_pressure, Observer_1_pressure, Observer_2_pressure, 
 18.82911,860,0,-0.000002345266,0
 18.8362,861,0,-0.000002345266,0
 18.84329,862,-0.000002345266,-0.000002345266,0
