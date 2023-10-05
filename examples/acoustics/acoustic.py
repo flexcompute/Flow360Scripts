@@ -162,7 +162,7 @@ def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
         # sampling frequency - section 7
         fs = 1/(mean_step_size/a_sound)
         # effective noise bandwidth - equation 22
-        enbw = fs * (s2 / s1**2)
+        enbw = 2 * fs * (s2 / s1**(5/2))
         # define the signal
         h =(pp - p0)*window
         # fft over the signal
@@ -185,7 +185,7 @@ def get_spectrum(a_sound,rho,a_csv,o_name,obsrId):
 
         # calculate the sound pressure level
         # response = cal_decibel_amplitude(lsX)
-        response = cal_decibel_power(psX)
+        response = cal_decibel_power(psdX)
         
         # collect the spectrum for averaging between observers
         avg_response += np.abs(response)
