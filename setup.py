@@ -8,6 +8,6 @@ setuptools.setup(
       author='Flexcompute Inc.',
       author_email='support@flexcompute.com',
       url='www.flexcompute.com',
-      packages=['preprocessing', 'preprocessing.BETDisk'],
+      packages=['src', 'src.BETDisk'],
       python_requires=">=3.6",
 )
