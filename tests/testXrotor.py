@@ -5,7 +5,7 @@ import unittest
 import utils
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import preprocessing.BETDisk.BETDisk.BETTranslatorInterface as interface
+import src.BETDisk.BETDisk.BETTranslatorInterface as interface
 
 here = os.path.abspath(os.path.dirname(__file__))
 

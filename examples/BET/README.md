@@ -40,5 +40,5 @@ to run these examples against source code
 add these lines at the beginning of the example scripts:
 ```python
 import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../preprocessing/BETDisk')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/BETDisk')))
 ```
