@@ -2,25 +2,26 @@
 # based on the PSU-WOPWOP 3.4.3 User Guide
 # 
 
-# The only required argument is the input file
-# input -> name of the input file containing the pressure data at each observedID. Typically this will be of the form caseID_total_acoustics_v3.csv
-#
-# Additional optional arguments can be specified:
-# window -> 0 indicates no windowing applied, 1 (default) indicates Hann window.
-# a_weight -> 0 indicates no weighting applied, 1 (default) inidicates A-weighted resutls
-# observer_Id (specified observer) -> only processes a single observer specified by the user
-# output -> output file for OASPL values. The default is OASPL.csv
+
+# Inputs:
+# The required input is set at the top of the main function in this script. Optional arguments can be modified directly in the acoustics_output function call.
+# The only required input is the input file containing the pressure data at the observer location, typically of the form {caseID}_total_acoustics_v3.csv.
+# 
+# Valid arguments to the optional inputs include:
+# weighting: "A" "None"
+# window: "Hann" "None"
+# output: any string for the output file name
+# observer_id: -1 corresponds to post-processing all observer ID's or an integer corresponding to a single observer ID present in the input file.
 
 # Outputs:
-# A csv file containing the OASPL for each observerID
+# A csv file containing the OASPL for each observerID 
+# A plot of observerID vs OASPL
 # PNG files with the spectral plots for each observerID
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
-import argparse
-
 
 #Input corresponding environmental conditions
 grid_unit = 1 # m
@@ -36,9 +37,9 @@ f2 = 107.653
 f3 = 737.862
 f4 = 12194.220
 
-def readCsvFile(filePath):
+def read_csv_file(filePath):
     df = pd.read_csv(filePath, skipinitialspace=True)
-    del df[df.columns[-1]]
+    df = df.iloc[:,:-1]
     data = df.to_dict(orient='list')
     return data
 
@@ -49,18 +50,18 @@ def apply_windowing_function(acoustics_data, i_observer, window):
     N = len(non_zero_pressure) # number of time points in the time history
 
     # window correction. 0= Rectangular window, 1= Hann Window
-    if(window==1):
+    if(window=="Hann"):
         window_function = np.hanning(N)
-        Fc = np.sqrt(N/sum(window_function**2))
+        fc = np.sqrt(N/sum(window_function**2))
     else:
         window_function = 1.0
-        Fc = 1.0
+        fc = 1.0
     # The windows that are actually applied to the time history are 
     # the window functions multiplied by their respective scaling factor
-    windowed_pressure = window_function * Fc * non_zero_pressure
+    windowed_pressure = window_function * fc * non_zero_pressure
     return windowed_pressure
 
-def compute_spectrum(windowed_pressure, time_step_size, i_observer, a_weight, output):
+def compute_spectrum(windowed_pressure, time_step_size, i_observer, weighting, output):
     N = len(windowed_pressure)
     physical_pressure     = windowed_pressure * rho * speed_of_sound**2 # Pa
     physical_time_step_size = time_step_size * grid_unit / speed_of_sound # s
@@ -75,7 +76,7 @@ def compute_spectrum(windowed_pressure, time_step_size, i_observer, a_weight, ou
     Pc[1:M] = spectrum[1:M] * 2/N;
     mean_square_pressure = 0.5 * np.abs(Pc)**2
     
-    if a_weight==1: 
+    if weighting=="A": 
         weighted_mean_square_pressure = np.zeros(M)
         for m in range(0,M):
             f_m  = frequency[m]
@@ -87,11 +88,11 @@ def compute_spectrum(windowed_pressure, time_step_size, i_observer, a_weight, ou
         if np.isnan(OASPL)==0:
             print(f'OASPLdBA = {OASPL}')
         else:
-            print("WARNING: Invalid result obtained, skipping observer "+ str(i_observer))
+            print('OASPLdBA = 0.0')
 
     else:
     
-        mean_Square_pressure = 0.5 * np.abs(Pc)**2
+        mean_square_pressure = 0.5 * np.abs(Pc)**2
         SPL   = 10 * np.log10(mean_square_pressure/reference_sound_pressure**2)
         OASPL = 10 * np.log10(sum(mean_square_pressure)/reference_sound_pressure**2)
         if np.isnan(OASPL)==0:
@@ -100,21 +101,20 @@ def compute_spectrum(windowed_pressure, time_step_size, i_observer, a_weight, ou
             print("WARNING: Invalid result obtained, skipping obeserver " +str(i_observer))
     return frequency, SPL, OASPL
 
-def plot_spectrum(frequency, SPL , i_observer, a_weight, window):
-    # plotting
+def plot_spectrum(frequency, SPL , i_observer, weighting, window):
     plt.figure(figsize=(8, 6))
-    if (a_weight ==0 and window == 1):
+    if (weighting == "None" and window == "Hann"):
         plot_title = "Noise Spectrum - Non-weighted, Hann Window - Observer "+str(i_observer)
-    elif (a_weight ==1 and window == 1):
+    elif (weighting =="None" and window == "None"):
+        plot_title = "Noise Spectrum - Non-weighted, No Window - Observer "+str(i_observer)
+    elif (weighting == "A" and window == "None"):
+        plot_title = "Noise Spectrum - A-weighted, No Window - Observer "+str(i_observer)
+    elif (weighting == "A" and window == "Hann"):
         plot_title = "Noise Spectrum - A-weighted, Hann Window - Observer "+str(i_observer)
-    elif (a_weight ==1 and window == 0):
-        plot_title = "Noise Spectrum - A-weighted, No Window - Observer "+str(i_observer)
-    elif (a_weight ==1 and window == 1):
-        plot_title = "Noise Spectrum - A-weighted, No Window - Observer "+str(i_observer)
   
     plt.title(plot_title)
 
-    if a_weight==1:
+    if weighting=="A":
         plt.plot(frequency, SPL, '-', label='dBA')
         plt.ylabel('SPL [dBA]', fontsize=10)
 
@@ -129,84 +129,106 @@ def plot_spectrum(frequency, SPL , i_observer, a_weight, window):
     plt.legend()
     plt.savefig(f'figures/spectrum_observer_{i_observer}',dpi=500)
     plt.close()
-    return 0
 
+def plot_OASPL(observer_id_all, OASPL_all, weighting, window):
+    plt.figure(figsize=(8, 6))
+    if (weighting == "None" and window == "Hann"):
+        plot_title = "OASPL - Non-weighted, Hann Window"
+    elif (weighting =="None" and window == "None"):
+        plot_title = "OASPL - Non-weighted, No Window"
+    elif (weighting == "A" and window == "None"):
+        plot_title = "OASPL - A-weighted, No Window"
+    elif (weighting == "A" and window == "Hann"):
+        plot_title = "OASPL, A-weighted, Hann Window"
 
+    plt.title(plot_title)
 
+    if weighting=="A":
+        plt.scatter(observer_id_all, OASPL_all, label='dBA')
+        plt.ylabel('OASPL [dBA]', fontsize=10)
 
+    else:
+        plt.scatter(observer_id_all, OASPL_all, label='dB')
+        plt.ylabel('OASPL [dB]', fontsize=10)
 
+    plt.xlabel('Observer ID', fontsize=10)
+    plt.grid(which='major')
+    plt.grid(which='minor', ls='--',color='k',linewidth=0.5)
+    plt.legend()
+    plt.savefig(f'figures/OASPL.png',dpi=500)
+    plt.close()
 
-
-
-def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--input',help='Specify the input aeroacoustic CSV file. For example: <caseId>_total_acoustics_v3.csv',type=str,required=True)
-    parser.add_argument('-n','--observer_Id',help='Observer Id number for acoustic pos-processing.',type=int,required=False)
-    parser.add_argument('-o','--output',help='Specify the output file name for calculated OASPL. Default is OASPL.csv',type=str,required=False)
-    parser.add_argument('-w','--window',help='Specify whether windowing should be applied to the spectral output 0=NONE, 1=HANN WINDOW',type=int,required=False)    
-    parser.add_argument('-a','--a_weight',help='Specify whether A-weighting should be applied to the signal. 0=No weighting applied, 1=A-weighted signal.',type=int,required=False)
-    args = parser.parse_args()
-
-
+def acoustics_output(input, output, window, weighting, observer_id):
+    OASPL_all = []
+    observer_id_all = []
     os.makedirs('figures',exist_ok=True)
 
-    acoustics_data = readCsvFile(args.input)
-    
+    acoustics_data = read_csv_file(input)
 
-    if args.observer_Id is None:
+    if (observer_id== -1):
         print("Computing aeroacoustic output for all observers")
         n_observer = len(acoustics_data)-2
-        observer_Id = list(range(0,n_observer))
+        observer_id = list(range(0,n_observer))
 
     else:
-        print("Computing aeroacoustic output for observer ID "+ str(args.observer_Id))
+        print("Computing aeroacoustic output for observer ID "+ str(observer_id))
         n_observer = 1
-        observer_Id =list(range(args.observer_Id, args.observer_Id+1))
-    
-    #Hann window by default
-    if args.window is None:
-        args.window=1
+        if (observer_id >= len(acoustics_data)-2):
+            print("Observer ID not present in the aeroacoustics output")
+            exit()
+        observer_id =list(range(observer_id, observer_id+1))
 
-    if  args.window == 1:
+
+    if  window == "Hann":
         print("Hann Window")
-    elif args.window==0:
+    elif window == "None":
         print("Rectangular Window")
-    
-    if args.output is None:
-        oaspl_file = os.path.join("OASPL.csv")
     else:
-        oaspl_file = os.path.join(args.output)
+        print("Invalid windowing option selected")
 
-    #A-weighted results by default
 
-    if args.a_weight is None:
-        args.a_weight=1
 
-    if args.a_weight == 1:
+    if weighting == "A":
         print("A-weighted output")
-        print(f"observer_Id, dBA",file=open(oaspl_file, 'w'))
+        f = open(output, "w")
+        f.write("observer_id, dBA \n")
 
-    elif args.a_weight==0:
+    elif weighting == "None":
+        f = open(output, "w")
         print("Non-weighted output")
-        print(f"observer_Id, dB",file=open(oaspl_file, 'w'))
+        f.write("observer_id, dB \n")
+    else:
+         print("Invalid weighting option selected")
 
-
-    for i_observer in observer_Id:
+    
+    for i_observer in observer_id:
         print(f'Observer ID = {i_observer}')
         #Assuming constant time step size for now
         time_step_size = acoustics_data[f"time"][1]-acoustics_data[f"time"][0]
         #Apply windowing function (even if no windowing is specified, script still goes through this function with a rectangular window applied).
-        windowed_pressure = apply_windowing_function(acoustics_data, i_observer, args.window)
+        windowed_pressure = apply_windowing_function(acoustics_data, i_observer, window)
         #Compute spectrum and OASPL values
-        frequency, SPL, OASPL = compute_spectrum(windowed_pressure, time_step_size, i_observer, args.a_weight, args.output)
+        frequency, SPL, OASPL = compute_spectrum(windowed_pressure, time_step_size, i_observer, weighting, output)
+        if np.isnan(OASPL)==0:
+            observer_id_all = np.append(observer_id_all, i_observer)
+            OASPL_all = np.append(OASPL_all, OASPL)
+        
         #Output CSV file containing OASPL values
         if np.isnan(OASPL)==0:
-            print("{}, {:.5f}".format(i_observer,OASPL),file=open(oaspl_file, 'a'))
+            f.write("{}, {:.5f} \n".format(i_observer,OASPL))
+        else:
+            OASPL = 0
+            f.write("{}, {:.5f} \n".format(i_observer,OASPL))
+
+
         #Plot spectral response
         if (np.isnan(SPL).any())==0:
-            plot_spectrum(frequency, SPL, i_observer, args.a_weight, args.window)
-    return 0
+            plot_spectrum(frequency, SPL, i_observer, weighting, window)
+    plot_OASPL(observer_id_all, OASPL_all, weighting, window)
+
+def main():
+    input = "09caab3a-dc97-4f40-9727-0fe94818cdf1_total_acoustics_v3.csv"    
+    acoustics_output(input, output="OASPL.csv", window="Hann", weighting="A", observer_id = -1)
 
 if __name__ == '__main__':
     main()
