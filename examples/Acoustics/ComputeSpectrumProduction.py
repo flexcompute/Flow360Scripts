@@ -49,7 +49,7 @@ def apply_windowing_function(acoustics_data, i_observer, window):
     non_zero_pressure = pressure[indices]
     N = len(non_zero_pressure) # number of time points in the time history
 
-    # window correction. 0= Rectangular window, 1= Hann Window
+    # window correction."None"= No window, "Hann"= Hann Window
     if(window=="Hann"):
         window_function = np.hanning(N)
         fc = np.sqrt(N/sum(window_function**2))
@@ -98,7 +98,7 @@ def compute_spectrum(windowed_pressure, time_step_size, i_observer, weighting, o
         if np.isnan(OASPL)==0:
             print(f'OASPLdB = {OASPL}')
         else:
-            print("WARNING: Invalid result obtained, skipping obeserver " +str(i_observer))
+            print("WARNING: Invalid result obtained, skipping observer " +str(i_observer))
     return frequency, SPL, OASPL
 
 def plot_spectrum(frequency, SPL , i_observer, weighting, window):
@@ -182,7 +182,7 @@ def acoustics_output(input, output, window, weighting, observer_id):
     if  window == "Hann":
         print("Hann Window")
     elif window == "None":
-        print("Rectangular Window")
+        print("No Window")
     else:
         print("Invalid windowing option selected")
 
