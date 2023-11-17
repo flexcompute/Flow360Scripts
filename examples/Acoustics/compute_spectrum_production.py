@@ -1,17 +1,15 @@
 """This script is used for post-processing of aeroacoustic pressure data
 based on the PSU-WOPWOP 3.4.3 User Guide
 
-Input:
-The required input is set at the top of the main function in this script.
-Optional arguments can be modified directly in the acoustics_output function call.
-The only required input is the input file containing the pressure data at the observer location,
-typically of the form {caseID}_total_acoustics_v3.csv.
+Inputs:
+The inputs are set at the top of the script.
+The following inputs can be set:
 
-Valid arguments to the optional inputs include:
-weighting: "A" None
-window: "Hann" None
-output: any string for the output file name
-observer_id: -1 corresponds to post-processing all observer ID's
+INPUT: Name of the input file (typically of the form "{caseID}_total_acoustics_v3.csv"
+WEIGHTING: Options for Non-weighted and A-weighted outputs. Valid inputs: "A" None
+WINDOW: Options for a windowed or non-windowed signal. Valid inputs: "Hann" None
+OUTPUT: Name of the output file
+OBSERVER_ID: -1 corresponds to post-processing all observer ID's
 or an integer corresponding to a single observer ID present in the input file.
 
 Outputs:
@@ -25,6 +23,13 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+# User inputs
+INPUT_FILE = "09caab3a-dc97-4f40-9727-0fe94818cdf1_total_acoustics_v3.csv"
+OUTPUT_FILE = "OASPL.csv"
+WINDOW = "Hann"
+WEIGHTING = "A"
+OBSERVER_ID = -1
 
 # Input corresponding environmental conditions
 GRID_UNIT = 1  # m
@@ -42,7 +47,7 @@ F4 = 12194.220
 
 
 def read_csv_file(file_path):
-    """This function reads in the input file"""
+    """Read in the acoustics data input file and return a dict"""
 
     df = pd.read_csv(file_path, skipinitialspace=True)
     df = df.iloc[:, :-1]
@@ -51,7 +56,7 @@ def read_csv_file(file_path):
 
 
 def apply_windowing_function(acoustics_data, i_observer, window):
-    """This function reads in the CSV input file and returns dict"""
+    """ "Apply the prescribed windowing function to observer data"""
 
     pressure = np.asarray(acoustics_data[f"observer_{i_observer}_pressure"])
     indices = np.nonzero(pressure)
@@ -72,7 +77,7 @@ def apply_windowing_function(acoustics_data, i_observer, window):
 
 
 def compute_a_weight(f_m):
-    """This function computes the a_weight"""
+    """Compute the A weight"""
 
     w_cm = K1 * f_m**4 / ((f_m**2 + F1**2) ** 2 * (f_m**2 + F4**2) ** 2)
     w_am = w_cm * K3 * f_m**4 / ((f_m**2 + F2**2) * (f_m**2 + F3**2))
@@ -80,20 +85,29 @@ def compute_a_weight(f_m):
 
 
 def compute_spectrum(windowed_pressure, time_step_size, weighting):
-    """This function performs the FFT on the pressure signal and computes the OASPL and SPL spectrum"""
-
+    """Compute the FFT of the pressure signal and then the OASPL and SPL spectrum"""
+    # Number of discrete points in the time domain
     n = len(windowed_pressure)
+    # Calculate dimensional quantities from Flow360 nondimensional data
     physical_pressure = windowed_pressure * RHO * SPEED_OF_SOUND**2  # Pa
     physical_time_step_size = time_step_size * GRID_UNIT / SPEED_OF_SOUND  # s
+    # Compute the frequency step size
     frequency_step_size = 1.0 / (n * physical_time_step_size)
+    # Compute the number of frequency bins
     m = int(np.floor(n / 2) + 1)
+    # Compute the Nyquist frequency
     nyquist_frequency = np.floor(n / 2) * frequency_step_size
+    # Compute the frequency array based on the minimum and maximum frequencies required to recreate the signal
     frequency = np.linspace(0, nyquist_frequency, m)
+    # Compute the Fast Fourier Transform
     spectrum = np.fft.rfft(physical_pressure)
+
+    # Calculate the complex pressure at each frequency bin
     p_c = np.zeros(m, dtype=complex)
     p_c[0] = spectrum[0] * 1 / n
     p_c[1:m] = spectrum[1:m] * 2 / n
 
+    # If A-weighitng is selected, compute the weighted mean square pressure and then the SPL and OASPL values.
     if weighting == "A":
         weighted_mean_square_pressure = np.zeros(m)
         for k in range(0, m):
@@ -107,23 +121,24 @@ def compute_spectrum(windowed_pressure, time_step_size, weighting):
             sum(weighted_mean_square_pressure) / REFERENCE_SOUND_PRESSURE**2
         )
         if np.isnan(oaspl) == 0:
-            print(f"OASPLdBA = {oaspl}")
+            print(f"OASPL [dBA] = {oaspl}")
         else:
-            print("OASPLdBA = 0.0")
+            print("OASPL [dBA] = 0.0")
+    # If no weighting is selected, compute the mean square pressure and then the SPL and OASPL values.
     else:
         mean_square_pressure = 0.5 * np.abs(p_c) ** 2
         spl = 10 * np.log10(mean_square_pressure / REFERENCE_SOUND_PRESSURE**2)
         oaspl = 10 * np.log10(sum(mean_square_pressure) / REFERENCE_SOUND_PRESSURE**2)
         if np.isnan(oaspl) == 0:
-            print(f"OASPLdB = {oaspl}")
+            print(f"OASPL [dB] = {oaspl}")
         else:
-            print("OASPLdBA = 0.0")
+            print("OASPL [dB] = 0.0")
 
     return frequency, spl, oaspl
 
 
 def plot_spectrum(frequency, spl, i_observer, weighting, window):
-    """This function plots the SPL spectra"""
+    """Plot the SPL spectra"""
 
     plt.figure(figsize=(8, 6))
     if weighting is None and window == "Hann":
@@ -156,14 +171,14 @@ def plot_spectrum(frequency, spl, i_observer, weighting, window):
     plt.xscale("log")
     plt.xlabel("Frequency [Hz]", fontsize=10)
     plt.grid(which="major")
-    plt.grid(which="minor", ls="--", color="k", linewidth=0.5)
+    plt.grid(which="minor", ls="--", color="gray", linewidth=0.5)
     plt.legend()
     plt.savefig(f"figures/spectrum_observer_{i_observer}", dpi=500)
     plt.close()
 
 
 def plot_oaspl(observer_id_all, oaspl_all, weighting, window):
-    """This function plots the OASPL vs Observer ID"""
+    """Plot the OASPL vs Observer ID"""
 
     plt.figure(figsize=(8, 6))
     if weighting is None and window == "Hann":
@@ -194,7 +209,7 @@ def plot_oaspl(observer_id_all, oaspl_all, weighting, window):
 
 
 def print_input_choices(observer_id, window, weighting, acoustics_data):
-    """This function prints the input choices to the screen"""
+    """Print the input choices to the screen"""
 
     if observer_id == -1:
         print("Computing aeroacoustic output for all observers")
@@ -222,7 +237,7 @@ def print_input_choices(observer_id, window, weighting, acoustics_data):
 
 
 def acoustics_output(input_file, output, window, weighting, observer_id):
-    """This function drives the acoustics output"""
+    """Drive the acoustics output"""
 
     oaspl_all = []
     observer_id_all = []
@@ -240,7 +255,6 @@ def acoustics_output(input_file, output, window, weighting, observer_id):
     if weighting == "A":
         with open(output, "w", encoding="utf-8") as f:
             f.write("observer_id, dBA \n")
-
     elif weighting is None:
         with open(output, "w", encoding="utf-8") as f:
             f.write("observer_id, dB \n")
@@ -274,7 +288,4 @@ def acoustics_output(input_file, output, window, weighting, observer_id):
     plot_oaspl(observer_id_all, oaspl_all, weighting, window)
 
 
-INPUT_FILE = "09caab3a-dc97-4f40-9727-0fe94818cdf1_total_acoustics_v3.csv"
-acoustics_output(
-    INPUT_FILE, output="OASPL.csv", window="Hann", weighting="A", observer_id=-1
-)
+acoustics_output(INPUT_FILE, OUTPUT_FILE, WINDOW, WEIGHTING, OBSERVER_ID)
