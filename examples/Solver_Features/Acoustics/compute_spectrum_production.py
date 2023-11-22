@@ -120,7 +120,7 @@ def compute_spectrum(windowed_pressure, time_step_size, weighting):
         oaspl = 10 * np.log10(
             sum(weighted_mean_square_pressure) / REFERENCE_SOUND_PRESSURE**2
         )
-        if np.isnan(oaspl) == 0:
+        if not np.isnan(oaspl):
             print(f"OASPL [dBA] = {oaspl}")
         else:
             print("OASPL [dBA] = 0.0")
@@ -129,11 +129,10 @@ def compute_spectrum(windowed_pressure, time_step_size, weighting):
         mean_square_pressure = 0.5 * np.abs(p_c) ** 2
         spl = 10 * np.log10(mean_square_pressure / REFERENCE_SOUND_PRESSURE**2)
         oaspl = 10 * np.log10(sum(mean_square_pressure) / REFERENCE_SOUND_PRESSURE**2)
-        if np.isnan(oaspl) == 0:
+        if not np.isnan(oaspl):
             print(f"OASPL [dB] = {oaspl}")
         else:
             print("OASPL [dB] = 0.0")
-
     return frequency, spl, oaspl
 
 
@@ -236,56 +235,50 @@ def print_input_choices(observer_id, window, weighting, acoustics_data):
         raise RuntimeError
 
 
-def acoustics_output(input_file, output, window, weighting, observer_id):
-    """Drive the acoustics output"""
+OASPL_ALL = []
+OBSERVER_ID_ALL = []
+os.makedirs("figures", exist_ok=True)
 
-    oaspl_all = []
-    observer_id_all = []
-    os.makedirs("figures", exist_ok=True)
+ACOUSTICS_DATA = read_csv_file(INPUT_FILE)
+print_input_choices(OBSERVER_ID, WINDOW, WEIGHTING, ACOUSTICS_DATA)
 
-    acoustics_data = read_csv_file(input_file)
-    print_input_choices(observer_id, window, weighting, acoustics_data)
+if OBSERVER_ID == -1:
+    n_observer = len(ACOUSTICS_DATA) - 2
+    observer_list = list(range(0, n_observer))
+else:
+    observer_list = list(range(OBSERVER_ID, OBSERVER_ID + 1))
 
-    if observer_id == -1:
-        n_observer = len(acoustics_data) - 2
-        observer_list = list(range(0, n_observer))
+if WEIGHTING == "A":
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write("observer_id, dBA \n")
+elif WEIGHTING is None:
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write("observer_id, dB \n")
+
+for I_OBSERVER in observer_list:
+    print(f"Observer ID = {I_OBSERVER}")
+    # Assuming constant time step size for now
+    TIME_STEP_SIZE = ACOUSTICS_DATA["time"][1] - ACOUSTICS_DATA["time"][0]
+    # Apply windowing function (even if no windowing is specified, then rectangular window applied)
+    WINDOWED_PRESSURE = apply_windowing_function(ACOUSTICS_DATA, I_OBSERVER, WINDOW)
+    # Compute spectrum and OASPL values
+    FREQUENCY, SPL, OASPL = compute_spectrum(
+        WINDOWED_PRESSURE, TIME_STEP_SIZE, WEIGHTING
+    )
+    if not np.isnan(OASPL):
+        OBSERVER_ID_ALL = np.append(OBSERVER_ID_ALL, I_OBSERVER)
+        OASPL_ALL = np.append(OASPL_ALL, OASPL)
+
+    # Output CSV file containing OASPL values
+    if not np.isnan(OASPL):
+        with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
+            f.write(f"{I_OBSERVER}, {OASPL:.5f} \n")
     else:
-        observer_list = list(range(observer_id, observer_id + 1))
+        OASPL = 0
+        with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
+            f.write(f"{I_OBSERVER}, {OASPL:.5f} \n")
 
-    if weighting == "A":
-        with open(output, "w", encoding="utf-8") as f:
-            f.write("observer_id, dBA \n")
-    elif weighting is None:
-        with open(output, "w", encoding="utf-8") as f:
-            f.write("observer_id, dB \n")
-
-    for i_observer in observer_list:
-        print(f"Observer ID = {i_observer}")
-        # Assuming constant time step size for now
-        time_step_size = acoustics_data["time"][1] - acoustics_data["time"][0]
-        # Apply windowing function (even if no windowing is specified, then rectangular window applied)
-        windowed_pressure = apply_windowing_function(acoustics_data, i_observer, window)
-        # Compute spectrum and OASPL values
-        frequency, spl, oaspl = compute_spectrum(
-            windowed_pressure, time_step_size, weighting
-        )
-        if np.isnan(oaspl) == 0:
-            observer_id_all = np.append(observer_id_all, i_observer)
-            oaspl_all = np.append(oaspl_all, oaspl)
-
-        # Output CSV file containing OASPL values
-        if np.isnan(oaspl) == 0:
-            with open(output, "a", encoding="utf-8") as f:
-                f.write(f"{i_observer}, {oaspl:.5f} \n")
-        else:
-            oaspl = 0
-            with open(output, "a", encoding="utf-8") as f:
-                f.write(f"{i_observer}, {oaspl:.5f} \n")
-
-        # Plot spectral response
-        if (np.isnan(spl).any()) == 0:
-            plot_spectrum(frequency, spl, i_observer, weighting, window)
-    plot_oaspl(observer_id_all, oaspl_all, weighting, window)
-
-
-acoustics_output(INPUT_FILE, OUTPUT_FILE, WINDOW, WEIGHTING, OBSERVER_ID)
+    # Plot spectral response
+    if not np.isnan(SPL).any():
+        plot_spectrum(FREQUENCY, SPL, I_OBSERVER, WEIGHTING, WINDOW)
+plot_oaspl(OBSERVER_ID_ALL, OASPL_ALL, WEIGHTING, WINDOW)
