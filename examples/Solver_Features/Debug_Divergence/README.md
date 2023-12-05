@@ -1,10 +1,12 @@
 The following cases are for a demonstration of the debug divergence pipeline and are intended to diverge. 
 
-1. Run Submit_Cases.py -> this script will obtain the meshes, and upload them to the Flexcompute servers. The cases will also be submitted.
+To run the demo case follow these steps:
 
-2. Run Download_Data.py -> this script will download the csv files containing the min/max locations of the pressure, density, velocity magnitude and turbulent variables.
+1. Run `python submit_cases_from_downloads.py` -> this script will download both wall resolved and wall model meshes, and upload them to the Flexcompute servers. The cases will also be submitted. Alternatively the script `submit_cases_from_id.py` can also be used to run the cases from meshes already uploaded to Flexcompute servers.
 
-3. Run Print_Divergence_Locations.py -> this script will print the minimum pressure, minimum density, maxiumum velocity magnitude and minimum nuHat at the last iteration.
+2. Run `python download_data.py` -> this script will download the csv files containing the min/max locations of the pressure, density, velocity magnitude and turbulent variables.
+
+3. Run `python print_divergence_locations.py` -> this script will print the minimum pressure, minimum density, maxiumum velocity magnitude and minimum nuHat at the last iteration.
 
 4. Investigate the mesh at the location, where one of the variables went non-physical (e.g. negative pressure or density)
 

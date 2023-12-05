@@ -1,0 +1,317 @@
+{
+    "boundaries": [
+        {
+            "area": {
+                "arithmeticMean": 291.92082281439565,
+                "max": 473.2736511230469,
+                "maxElementTypes": "Triangle",
+                "maxLocation": [
+                    147.55576534354338,
+                    173.443682294482,
+                    101.35589838513086
+                ],
+                "min": 132.748291015625,
+                "minElementTypes": "Triangle",
+                "minLocation": [
+                    63.28409037995478,
+                    226.93446344287602,
+                    -82.99685725903372
+                ]
+            },
+            "areaRatio": {
+                "arithmeticMean": 1.4985113090976945,
+                "max": 2.681257724761963,
+                "maxElementTypes": [
+                    "Triangle",
+                    "Triangle"
+                ],
+                "maxLocation": [
+                    [
+                        41.22672636048258,
+                        235.12222480709738,
+                        -72.30697082376679
+                    ],
+                    [
+                        63.28409037995478,
+                        226.93446344287602,
+                        -82.99685725903372
+                    ]
+                ],
+                "min": 1.0005501508712769,
+                "minElementTypes": [
+                    "Triangle",
+                    "Triangle"
+                ],
+                "minLocation": [
+                    [
+                        -216.8532168881018,
+                        5.701608820427729,
+                        123.08810546996047
+                    ],
+                    [
+                        -206.0711587802807,
+                        5.701608820427729,
+                        140.50172722057076
+                    ]
+                ]
+            },
+            "aspectRatio": {
+                "arithmeticMean": 1.2360145225757426,
+                "max": 2.1813117475558967,
+                "maxElementTypes": "Triangle",
+                "maxLocation": [
+                    157.29089552318047,
+                    149.3299566269409,
+                    123.1598738884641
+                ],
+                "min": 1.002476929672776,
+                "minElementTypes": "Triangle",
+                "minLocation": [
+                    -209.12872863786876,
+                    87.0875263617167,
+                    104.67364276064143
+                ]
+            },
+            "boundaryName": "fluid/farfield",
+            "firstLayerThickness": {
+                "arithmeticMean": 19.462266130911928,
+                "max": 30.74910545349121,
+                "maxElementTypes": "Node",
+                "maxLocation": [
+                    20.125249633278905,
+                    248.82412762548896,
+                    13.473226733512927
+                ],
+                "min": 9.850659370422363,
+                "minElementTypes": "Node",
+                "minLocation": [
+                    77.96281986731935,
+                    64.44705885200133,
+                    228.62277953795996
+                ]
+            },
+            "nodeCount": 698
+        },
+        {
+            "area": {
+                "arithmeticMean": 1.945036356115944,
+                "max": 445.40167236328125,
+                "maxElementTypes": "Triangle",
+                "maxLocation": [
+                    149.48777645821437,
+                    0.0,
+                    176.5591785237306
+                ],
+                "min": 3.0505323744475787e-13,
+                "minElementTypes": "Triangle",
+                "minLocation": [
+                    1.000000608340996,
+                    0.0,
+                    0.0014703500674634617
+                ]
+            },
+            "areaRatio": {
+                "arithmeticMean": 2.167965960269024,
+                "max": 7451.1826171875,
+                "maxElementTypes": [
+                    "Quadrilateral",
+                    "Triangle"
+                ],
+                "maxLocation": [
+                    [
+                        0.9991196802950424,
+                        0.0,
+                        0.0019439293803997222
+                    ],
+                    [
+                        1.000000608340996,
+                        0.0,
+                        0.0014703500674634617
+                    ]
+                ],
+                "min": 1.0005085468292236,
+                "minElementTypes": [
+                    "Quadrilateral",
+                    "Quadrilateral"
+                ],
+                "minLocation": [
+                    [
+                        0.9949392997459301,
+                        0.0,
+                        0.0004061822794153316
+                    ],
+                    [
+                        0.9930284808138277,
+                        0.0,
+                        0.0009942629024474203
+                    ]
+                ]
+            },
+            "aspectRatio": {
+                "arithmeticMean": 155.74056106968388,
+                "max": 9645.000651435734,
+                "maxElementTypes": "Quadrilateral",
+                "maxLocation": [
+                    0.0017712367717225902,
+                    0.0,
+                    0.004573968435596714
+                ],
+                "min": 1.0013615647691088,
+                "minElementTypes": "Triangle",
+                "minLocation": [
+                    1.332686192522447,
+                    0.0,
+                    -0.09446793669282744
+                ]
+            },
+            "boundaryName": "fluid/symmetric",
+            "firstLayerThickness": {
+                "arithmeticMean": 0.20590281270261715,
+                "max": 23.850631713867188,
+                "maxElementTypes": "Node",
+                "maxLocation": [
+                    -238.23550010678917,
+                    0.0,
+                    -75.7881685282609
+                ],
+                "min": 4.633235221263021e-05,
+                "minElementTypes": "Node",
+                "minLocation": [
+                    -0.0007234002335295815,
+                    0.0,
+                    -0.00033018886195446503
+                ]
+            },
+            "nodeCount": 73383
+        },
+        {
+            "area": {
+                "arithmeticMean": 0.00016775446368517011,
+                "max": 0.01729346439242363,
+                "maxElementTypes": "Quadrilateral",
+                "maxLocation": [
+                    0.524345493855963,
+                    2.2948648494290977,
+                    0.06395318305183383
+                ],
+                "min": 5.556775040105322e-09,
+                "minElementTypes": "Triangle",
+                "minLocation": [
+                    0.0001067611691790419,
+                    4.999999999999999,
+                    -0.00017025561013887778
+                ]
+            },
+            "areaRatio": {
+                "arithmeticMean": 2.6092350756744613,
+                "max": 16650.416015625,
+                "maxElementTypes": [
+                    "Triangle",
+                    "Triangle"
+                ],
+                "maxLocation": [
+                    [
+                        0.0012227912585606909,
+                        4.9799999999999995,
+                        0.003100949926446326
+                    ],
+                    [
+                        0.00012051441305754237,
+                        5.0,
+                        -4.032887514092763e-06
+                    ]
+                ],
+                "min": 1.0,
+                "minElementTypes": [
+                    "Triangle",
+                    "Triangle"
+                ],
+                "minLocation": [
+                    [
+                        1.0,
+                        0.026248096390986523,
+                        -0.00098
+                    ],
+                    [
+                        1.0,
+                        0.026248096390986523,
+                        -0.00098
+                    ]
+                ]
+            },
+            "aspectRatio": {
+                "arithmeticMean": 15.835971698502322,
+                "max": 3234.080179288396,
+                "maxElementTypes": "Quadrilateral",
+                "maxLocation": [
+                    1.358701330455523e-06,
+                    2.294864849429104,
+                    -2.4963051225807055e-05
+                ],
+                "min": 1.0000652114477049,
+                "minElementTypes": "Triangle",
+                "minLocation": [
+                    0.5409056017557239,
+                    0.0005078719426672653,
+                    -0.0418308773330812
+                ]
+            },
+            "boundaryName": "fluid/wing",
+            "firstLayerThickness": {
+                "arithmeticMean": 9.94855714014816e-07,
+                "max": 1.0125497738044942e-06,
+                "maxElementTypes": "Node",
+                "maxLocation": [
+                    0.9987884202543752,
+                    0.001092672346567293,
+                    -0.0009659299906853389
+                ],
+                "min": 9.339078399506207e-10,
+                "minElementTypes": "Node",
+                "minLocation": [
+                    0.8860456275429734,
+                    4.992741128205036,
+                    0.028779738821366026
+                ]
+            },
+            "nodeCount": 34996
+        }
+    ],
+    "version": "v1.0.0",
+    "volumetric": {
+        "aspectRatio": {
+            "arithmeticMean": 1514.9884540743383,
+            "max": 193869.71426557042,
+            "maxElementTypes": "Hexahedron",
+            "maxLocation": [
+                0.5243455076566441,
+                2.294864849431958,
+                0.06395368276418312
+            ],
+            "min": 1.0350238270624377,
+            "minElementTypes": "Tetrahedron",
+            "minLocation": [
+                1.0387296013781655,
+                5.056439364641543,
+                -0.03925651985503204
+            ]
+        },
+        "volume": {
+            "arithmeticMean": 6.561119480285893,
+            "max": 7237.24589751225,
+            "maxElementTypes": "Tetrahedron",
+            "maxLocation": [
+                -17.706885592654487,
+                175.4454219756072,
+                -92.69272185260752
+            ],
+            "min": 7.638792269195606e-19,
+            "minElementTypes": "Prism",
+            "minLocation": [
+                1.0000011401438824,
+                5.00000034892017,
+                0.0014706859379563682
+            ]
+        }
+    }
+}

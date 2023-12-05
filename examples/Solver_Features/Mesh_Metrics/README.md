@@ -1,11 +1,7 @@
-To run the demo case follow these steps:
+This following example demonstrates the mesh metrics feature for a poor mesh of the unswept CRM wing.
 
-1. Run Submit_Mesh.py -> this script will upload the mesh to the Flexcompute servers
+To run the demo case perform one of the following steps:
 
-2. Note that the mesh metrics take a short amount of time to be calculated once the mesh is uploaded. To check whether the mesh metrics have been calculated, try downloading the meshMetrics.json file using Download_MeshMetrics.py
+If the mesh is already uploaded on the flexcompute servers, run `python submit_case_from_mesh_id.py` -> this script will upload the case with a poor surface mesh, which will trigger mesh metrics validation warnings. 
 
-3. Run Submit_Case.py -> this script will upload the case with a poor surface mesh, which will trigger mesh metrics validation warnings.
-
-Files.py contains reference to the location of the meshes and JSON files. The default option is to use a mesh from Flexcompute storage servers and the Flow360.json file located in the "localFiles directory".
-To run with a mesh stored in the "localFiles" directory, Run SubmitMesh.py or Submit_Cases.py --localFiles 1
-
+Alternatively, the mesh can be uploaded using `python submit_mesh_from_download.py`. The case can then be uploaded using `python submit_case_from_mesh_name` Note that the mesh metrics can take a short amount of time to be calculated, once the mesh is uploaded. To check whether the mesh metrics are available, the following script can be ran: `python download_mesh_metrics`.
