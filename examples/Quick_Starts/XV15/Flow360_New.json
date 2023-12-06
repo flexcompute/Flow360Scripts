@@ -17,7 +17,7 @@
         "relativeTolerance" : 1e-2,
         "linearIterations" : 35,
         "kappaMUSCL" : -1.0,
-        "orderOfAccuracy" : 1,
+        "orderOfAccuracy" : 2,
         "updateJacobianFrequency" : 4,
         "equationEvalFrequency" : 1
     },
@@ -28,7 +28,7 @@
         "linearIterations" : 25,
         "kappaMUSCL" : -1.0,
         "DDES" : true,
-        "orderOfAccuracy" : 1,
+        "orderOfAccuracy" : 2,
         "updateJacobianFrequency" : 4,
         "equationEvalFrequency" : 1,
         "rotationCorrection" : true
@@ -44,28 +44,23 @@
     },
     "boundaries" : {
         "farField/farField" : { "type" : "Freestream" },
-        "farField/rotationInterface" : { "type" : "SlidingInterface" },
-        "innerRotating/rotationInterface" :   { "type" : "SlidingInterface" },
         "innerRotating/blade" :   { "type" : "NoSlipWall" }
     },
-    "slidingInterfaces" : [
-    {
-        "stationaryPatches" : ["farField/rotationInterface"],
-        "rotatingPatches" : ["innerRotating/rotationInterface"],
-        "axisOfRotation" : [0,0,-1],
-        "centerOfRotation" : [0,0,0],
-        "omega" : 1.84691e-01,
-        "volumeName" : ["innerRotating"]
-    }
-    ],
+    "volumeZones":{
+        "innerRotating":{
+            "referenceFrame":{
+                "axisOfRotation" : [0,0,-1],
+                "centerOfRotation" : [0,0,0],
+                "omegaRadians" : 1.84691e-01
+            }
+        }
+    },
     "timeStepping" : {
-		"timeStepSize" : 5.67000e-01,
-		"physicalSteps" : 60,
-		"maxPseudoSteps" : 12,
+		"timeStepSize" : 2.83500e-01,
+		"physicalSteps" : 600,
+		"maxPseudoSteps" : 35,
         "CFL" : {
-            "initial" : 1,
-            "final" : 1000,
-            "rampSteps" : 10
+	    "type": "adaptive"
         }
     }
 }

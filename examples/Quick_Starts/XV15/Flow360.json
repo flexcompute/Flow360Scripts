@@ -63,9 +63,7 @@
 		"physicalSteps" : 600,
 		"maxPseudoSteps" : 35,
         "CFL" : {
-            "initial" : 1,
-            "final" : 1e7,
-            "rampSteps" : 33
+	    "type": "adaptive"
         }
     }
 }
