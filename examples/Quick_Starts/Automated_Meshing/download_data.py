@@ -1,4 +1,4 @@
-"""Download the results for the ramp and adaptive CFL cases at both angles of attack"""
+"""Download the results for the ONERA M6 Automeshing Quick-start"""
 
 import os
 
