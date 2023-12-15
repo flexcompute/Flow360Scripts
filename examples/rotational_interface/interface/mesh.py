@@ -241,13 +241,52 @@ def gen_interface_face_mesh(side,f_center,f_status,f_dist,f_start_ring,n_fixed,m
             if i_ring > n_fixed:
                 if i_ring > 1:
                     # if edge length on mesh ring exceed input max edge length add points; otherwise constant
-                    ds = np.linalg.norm(np.array(face_points[i_ring]) - np.array(face_points[i_ring-1]))
-                    if (edge_length_ring > face_maxEdge[i_ring]) or (edge_length_ring > m_edge):
+                    ds0 = np.linalg.norm(np.array(face_points[i_ring]) - np.array(face_points[i_ring-1]))
+                    tol = np.abs(ds0 / 1e3)
+                    out = None
+                    try:
+                        dsF = np.linalg.norm(np.array(face_points[i_ring+1]) - np.array(face_points[i_ring]))
+                    except:
+                        dsF = 0
+
+                    if edge_length_ring > ds0:
                         dim_ring += dim_ring_delta
-                    elif edge_length_ring > ds:
-                        dim_ring += dim_ring_delta
-                    elif (edge_length_ring < ds) and (dim_ring - dim_ring_delta > 1):
+                        out = 'A'
+                    elif (edge_length_ring < dsF) and (ds0-dsF > tol):  # spacing decreasing > tol
+                        if edge_length_ring > ds0:
+                            dim_ring += dim_ring_delta
+                            out = 'B'
+                    elif (dim_ring - dim_ring_delta > 1):
                         dim_ring -= dim_ring_delta
+                        out = 'C'
+                    # print('{}\t{}\t{:.2e}\t{:.2e}\t{:.2e}'.format(i_ring, out, ds0, dsF, dsF - ds0))
+
+
+                    # if (edge_length_ring < ds0) and (dim_ring - dim_ring_delta > 1):
+                    #     dim_ring -= dim_ring_delta
+                    #     out = 'A'
+                    # elif edge_length_ring > ds0:
+                    #     dim_ring += dim_ring_delta
+                    #     out = 'B'
+                    # elif (edge_length_ring > ds0) and (dsF - ds0 > tol):  # decreased spacing more than tol
+                    #     dim_ring += dim_ring_delta
+                    #     out = 'C'
+                    # elif (dsF < ds0) and (dsF - ds0 > tol) \
+                    #         and (dim_ring - dim_ring_delta > 1):  # increased spacing more than tol
+                    #     dim_ring -= dim_ring_delta
+                    #     out = 'D'
+
+                    # else:
+                    #     dim_ring += dim_ring_delta
+                    # if (edge_length_ring > face_maxEdge[i_ring]) or (edge_length_ring > m_edge):
+                    #     dim_ring += dim_ring_delta
+                    # elif edge_length_ring > ds:
+                    # if edge_length_ring > ds:
+                    #     dim_ring += dim_ring_delta
+                    # elif (edge_length_ring < ds) and (dim_ring - dim_ring_delta > 1):
+                    #     dim_ring -= dim_ring_delta
+                        # if (edge_length_ring < ds) and (dim_ring - dim_ring_delta > 1):
+                        #     dim_ring -= dim_ring_delta
                     # if (edge_length_ring < face_maxEdge[i_ring]) and (edge_length_ring < m_edge):
                     #     if dim_ring - dim_ring_delta > 1:
                     #         dim_ring -= dim_ring_delta
