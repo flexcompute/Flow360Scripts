@@ -1019,7 +1019,7 @@ def generateTwists(xrotorDict, meshUnit):
 
     for i in range(xrotorDict['nGeomStations']):
         # dimensional radius we are at in grid unit
-        r = xrotorDict['rRGeom'][i] * multiplier / meshUnit
+        r = xrotorDict['rRGeom'][i] * multiplier * meshUnit
         twist = xrotorDict['beta0Deg'][i]
         twistVec.append({'radius': r, 'twist': twist})
 
@@ -1034,7 +1034,7 @@ def generateChords(xrotorDict, meshUnit):
     Attributes
     ----------
     xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    meshUnit: float,  Grid unit length in the mesh. meshUnit is in m, if your grid is in mm then meshUnit = 1000 etc...
+    meshUnit: float,  Grid unit length in the mesh. meshUnit is in m, if your grid is in mm then meshUnit = 0.001 etc...
     return:  list of dictionaries containing the radius ( in grid units) and chords in grid units.
     """
     # generate the dimensional chord vector required from the BET input
@@ -1044,8 +1044,8 @@ def generateChords(xrotorDict, meshUnit):
     elif xrotorDict['inputType'] == 'dfdc':
         multiplier=1.0 # dfdc is already in meters so only need to convert it ot mesh units.
     for i in range(xrotorDict['nGeomStations']):
-        r = xrotorDict['rRGeom'][i] * multiplier / meshUnit
-        chord = xrotorDict['cRGeom'][i] * multiplier / meshUnit
+        r = xrotorDict['rRGeom'][i] * multiplier * meshUnit
+        chord = xrotorDict['cRGeom'][i] * multiplier * meshUnit
         chordVec.append({'radius': r, 'chord': chord})
 
     return chordVec
@@ -1366,7 +1366,7 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
     xrotorFileName: string, filepath to the Xrotor/DFDC file we want to translate into a BET disk
     betDisk: This is a dict that already contains some betDisk definition information. We will add to that same dict
     before returning it.
-    meshUnit is in m, if your grid is in mm then meshUnit = 1000 etc...
+    meshUnit is in m, if your grid is in mm then meshUnit = 0.001 etc...
         It should contain the following key value pairs:
         ['axisOfRotation']: [a,b,c],
         ['centerOfRotation']: [x,y,z],
@@ -1393,7 +1393,7 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
     xrotorDict = readXROTORFile(xrotorFileName)
 
     betDisk['numberOfBlades'] = xrotorDict['nBlades']
-    betDisk['radius'] = xrotorDict['rad'] / betDisk["meshUnit"]
+    betDisk['radius'] = xrotorDict['rad'] * betDisk["meshUnit"]
     betDisk['twists'] = generateTwists(xrotorDict, betDisk["meshUnit"])
     betDisk['chords'] = generateChords(xrotorDict, betDisk["meshUnit"])
     betDisk['MachNumbers'] = generateMachs()
@@ -1417,7 +1417,7 @@ def test_translator():
     run the translator with a representative set of inputs
     dumps betDisk JSON file that can be added to a Flow360 JSON file.
 
-    meshUnit is in m, if your grid is in mm then meshUnit = 1000 etc...
+    meshUnit is in m, if your grid is in mm then meshUnit = 0.001 etc...
     """
     betDiskDict = {'diskThickness': 0.05,
     'meshUnit': 1,
