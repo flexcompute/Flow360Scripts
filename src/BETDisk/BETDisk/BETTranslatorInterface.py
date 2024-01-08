@@ -433,7 +433,7 @@ def parseGeometryfile(geometryFileName):
     number3,filename3M1.csv,filename3M2.csv,...
     number4,filename4M1.csv,filename4M2.csv,...
     .....
-    #Radial Station (grid units),Chord(meshUnits),"twist(deg)from rotation plane (0 is parallel to rotation plane,  i.e. perpendicular to thrust)"
+    #Radial Station (grid units),Chord(meshUnitPerMeters),"twist(deg)from rotation plane (0 is parallel to rotation plane,  i.e. perpendicular to thrust)"
     number,number,number
     number,number,number
     number,number,number
@@ -1000,14 +1000,14 @@ def floatRange(start, stop, step=1):
     return [float(a) for a in range(start, stop, step)]
 
 ########################################################################################################################
-def generateTwists(xrotorDict, meshUnit):
+def generateTwists(xrotorDict, meshUnitPerMeter):
     """
     Transform the Xrotor format blade twists distribution into the Flow360 standard.z
 
     Attributes
     ----------
     xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    meshUnit: float,  Grid unit length in the mesh.
+    meshUnitPerMeter: float,  Grid unit length in the mesh.
     return:  list of dictionaries containing the radius ( in grid units) and twist in degrees.
     """
     # generate the twists vector required from the BET input
@@ -1019,7 +1019,7 @@ def generateTwists(xrotorDict, meshUnit):
 
     for i in range(xrotorDict['nGeomStations']):
         # dimensional radius we are at in grid unit
-        r = xrotorDict['rRGeom'][i] * multiplier * meshUnit
+        r = xrotorDict['rRGeom'][i] * multiplier * meshUnitPerMeter
         twist = xrotorDict['beta0Deg'][i]
         twistVec.append({'radius': r, 'twist': twist})
 
@@ -1027,14 +1027,14 @@ def generateTwists(xrotorDict, meshUnit):
 
 
 ########################################################################################################################
-def generateChords(xrotorDict, meshUnit):
+def generateChords(xrotorDict, meshUnitPerMeter):
     """
     Transform the Xrotor format blade chords distribution into the Flow360 standard.
 
     Attributes
     ----------
     xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    meshUnit: float,  Grid unit length in the mesh. meshUnit is in m, if your grid is in mm then meshUnit = 0.001 etc...
+    meshUnitPerMeter: float,  Grid unit length in the mesh. meshUnitPerMeter is in m, if your grid is in mm then meshUnitPerMeter = 0.001 etc...
     return:  list of dictionaries containing the radius ( in grid units) and chords in grid units.
     """
     # generate the dimensional chord vector required from the BET input
@@ -1044,8 +1044,8 @@ def generateChords(xrotorDict, meshUnit):
     elif xrotorDict['inputType'] == 'dfdc':
         multiplier=1.0 # dfdc is already in meters so only need to convert it ot mesh units.
     for i in range(xrotorDict['nGeomStations']):
-        r = xrotorDict['rRGeom'][i] * multiplier * meshUnit
-        chord = xrotorDict['cRGeom'][i] * multiplier * meshUnit
+        r = xrotorDict['rRGeom'][i] * multiplier * meshUnitPerMeter
+        chord = xrotorDict['cRGeom'][i] * multiplier * meshUnitPerMeter
         chordVec.append({'radius': r, 'chord': chord})
 
     return chordVec
@@ -1366,13 +1366,13 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
     xrotorFileName: string, filepath to the Xrotor/DFDC file we want to translate into a BET disk
     betDisk: This is a dict that already contains some betDisk definition information. We will add to that same dict
     before returning it.
-    meshUnit is in m, if your grid is in mm then meshUnit = 0.001 etc...
+    meshUnitPerMeter is in m, if your grid is in mm then meshUnitPerMeter = 0.001 etc...
         It should contain the following key value pairs:
         ['axisOfRotation']: [a,b,c],
         ['centerOfRotation']: [x,y,z],
         ['rotationDirectionRule']: "rightHand" or "leftHand",
         ['thickness']: value,
-        ['meshUnit']:value,
+        ['meshUnitPerMeter']:value,
         ['chordRef']:value,
         ['nLoadingNodes']
 
@@ -1393,9 +1393,9 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
     xrotorDict = readXROTORFile(xrotorFileName)
 
     betDisk['numberOfBlades'] = xrotorDict['nBlades']
-    betDisk['radius'] = xrotorDict['rad'] * betDisk["meshUnit"]
-    betDisk['twists'] = generateTwists(xrotorDict, betDisk["meshUnit"])
-    betDisk['chords'] = generateChords(xrotorDict, betDisk["meshUnit"])
+    betDisk['radius'] = xrotorDict['rad'] * betDisk["meshUnitPerMeter"]
+    betDisk['twists'] = generateTwists(xrotorDict, betDisk["meshUnitPerMeter"])
+    betDisk['chords'] = generateChords(xrotorDict, betDisk["meshUnitPerMeter"])
     betDisk['MachNumbers'] = generateMachs()
     betDisk['alphas'] = generateAlphas()
     betDisk['ReynoldsNumbers'] = generateReys()
@@ -1406,7 +1406,7 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
         polar = getPolar(xrotorDict, betDisk['alphas'], betDisk['MachNumbers'], secId)
         betDisk['sectionalPolars'].append(polar)
 
-    betDisk.pop("meshUnit",None) # grid unit is only needed to do calculations but not by the solver.
+    betDisk.pop("meshUnitPerMeter",None) # grid unit is only needed to do calculations but not by the solver.
 
     return betDisk
 
@@ -1417,10 +1417,10 @@ def test_translator():
     run the translator with a representative set of inputs
     dumps betDisk JSON file that can be added to a Flow360 JSON file.
 
-    meshUnit is in m, if your grid is in mm then meshUnit = 0.001 etc...
+    meshUnitPerMeter is in m, if your grid is in mm then meshUnitPerMeter = 0.001 etc...
     """
     betDiskDict = {'diskThickness': 0.05,
-    'meshUnit': 1,
+    'meshUnitPerMeter': 1,
     'chordRef': 1,
     'nLoadingNodes': 20,
     'tipGap': 'inf',

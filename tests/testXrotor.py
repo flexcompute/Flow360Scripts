@@ -14,7 +14,7 @@ class AdvancedTestSuite(unittest.TestCase):
 
     def test_xrotor(self):
 
-        betDiskAdditionalInfo = {"meshUnit": 1,
+        betDiskAdditionalInfo = {"meshUnitPerMeter": 1,
                                  "centerOfRotation": [0, 0, 0],
                                  "rotationDirectionRule": "leftHand",
                                  "axisOfRotation": [0, 0, 1],
