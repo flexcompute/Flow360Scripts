@@ -52,12 +52,6 @@
 		"stationaryField/farfield": {
 			"type": "Freestream"
 		},
-		"stationaryField/rotationInterface_static": {
-			"type": "SlidingInterface"
-		},
-		"rotationField/rotBnd": {
-			"type": "SlidingInterface"
-		},
 		"rotationField/blade": {
 			"type": "NoSlipWall"
 		},
@@ -68,30 +62,16 @@
 			"type": "NoSlipWall"
 		}
 	},
-	"slidingInterfaces": [
-		{
-			"stationaryPatches": [
-				"stationaryField/rotationInterface_static"
-			],
-			"rotatingPatches": [
-				"rotationField/rotBnd"
-			],
-			"axisOfRotation": [
-				0,
-				0,
-				-1
-			],
-			"centerOfRotation": [
-				0,
-				0,
-				0
-			],
-			"omega": 0.0036,
-			"volumeName": [
-				"rotationField"
-			]
-		}
-	],
+	"volumeZones":{
+        	"rotationField":{	
+			"modelType": "FluidDynamics",
+            		"referenceFrame":{
+                	"axisOfRotation" : [0,0,-1],
+                	"centerOfRotation" : [0,0,0],
+                	"omega" : 0.0036
+            		}
+        	}
+    	},
 	"timeStepping": {
 		"timeStepSize": 29.08882086657216,
 		"physicalSteps": 120,
