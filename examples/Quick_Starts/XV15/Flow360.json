@@ -44,20 +44,17 @@
     },
     "boundaries" : {
         "farField/farField" : { "type" : "Freestream" },
-        "farField/rotationInterface" : { "type" : "SlidingInterface" },
-        "innerRotating/rotationInterface" :   { "type" : "SlidingInterface" },
         "innerRotating/blade" :   { "type" : "NoSlipWall" }
     },
-    "slidingInterfaces" : [
-    {
-        "stationaryPatches" : ["farField/rotationInterface"],
-        "rotatingPatches" : ["innerRotating/rotationInterface"],
-        "axisOfRotation" : [0,0,-1],
-        "centerOfRotation" : [0,0,0],
-        "omega" : 1.84691e-01,
-        "volumeName" : ["innerRotating"]
-    }
-    ],
+    "volumeZones":{
+        "innerRotating":{
+            "referenceFrame":{
+                "axisOfRotation" : [0,0,-1],
+                "centerOfRotation" : [0,0,0],
+                "omegaRadians" : 1.84691e-01
+            }
+        }
+    },
     "timeStepping" : {
 		"timeStepSize" : 2.83500e-01,
 		"physicalSteps" : 600,

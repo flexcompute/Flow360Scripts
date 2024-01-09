@@ -9,8 +9,8 @@ case_name_list = []
 
 # download meshes to the current directory
 
-URL = "https://simcloud-public-1.s3.amazonaws.com/xv15/XV15_Hover_ascent_coarse.cgns"
-MESH_FILENAME = "XV15_Hover_ascent_coarse.cgns"
+URL = "https://simcloud-public-1.s3.amazonaws.com/xv15/XV15_Hover_ascent_coarse_v2.cgns"
+MESH_FILENAME = "XV15_Hover_ascent_coarse_v2.cgns"
 
 if not os.path.isfile(MESH_FILENAME):
     urlretrieve(URL, MESH_FILENAME)
