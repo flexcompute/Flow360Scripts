@@ -32,7 +32,7 @@ def getBetDiskParams(diskIdx):
     # All these parameters are explained in the Flow360 documentation under
     # https://docs.flexcompute.com/projects/flow360/en/latest/solverConfiguration/solverConfiguration.html?highlight=initialBladeDirection#betdisks-list
 
-    #mesh is in inches so meshUnit needs to be 0.0254m per in ( i.e. per mesh unit).  Xrotor inputs are in metric system.
+    #mesh is in inches so meshUnit needs to be 0.0254 m per in ( i.e. per mesh unit).  Xrotor inputs are in metric system.
     # Here we are using a mesh in inches to show how to convert using the meshUnit variable.
     betDiskDict = [{"meshUnit": 0.0254,
                  "centerOfRotation": [0, 0, 0],

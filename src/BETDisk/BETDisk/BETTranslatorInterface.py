@@ -1034,7 +1034,8 @@ def generateChords(xrotorDict, meshUnit):
     Attributes
     ----------
     xrotorDict: dictionary of Xrotor data as read in by def readXROTORFile(xrotorFileName):
-    meshUnit: float,  Grid unit length in the mesh. meshUnit is in m, if your grid is in mm then meshUnit = 1000 etc...
+    meshUnit: float,  Grid unit length per meter in the mesh. if your grid is in mm then meshUnit = 0.001 meter per mm;
+    If your grid is in inches then meshUnit = 0.0254 meter per in etc...
     return:  list of dictionaries containing the radius ( in grid units) and chords in grid units.
     """
     # generate the dimensional chord vector required from the BET input
@@ -1366,7 +1367,8 @@ def generateXrotorBETJSON(xrotorFileName, betDisk):
     xrotorFileName: string, filepath to the Xrotor/DFDC file we want to translate into a BET disk
     betDisk: This is a dict that already contains some betDisk definition information. We will add to that same dict
     before returning it.
-    meshUnit is in m, if your grid is in mm then meshUnit = 1000 etc...
+    meshUnit is in gridUnits per meters, if your grid is in mm then meshUnit = 0.001 grid Unit per meter.
+     If your grid is in inches then meshUnit = 0.0254 grid Unit per meter etc...
         It should contain the following key value pairs:
         ['axisOfRotation']: [a,b,c],
         ['centerOfRotation']: [x,y,z],
@@ -1417,7 +1419,8 @@ def test_translator():
     run the translator with a representative set of inputs
     dumps betDisk JSON file that can be added to a Flow360 JSON file.
 
-    meshUnit is in m, if your grid is in mm then meshUnit = 1000 etc...
+    meshUnit is in gridUnits per meters, if your grid is in mm then meshUnit = 0.001 grid Unit per meter.
+     If your grid is in inches then meshUnit = 0.0254 grid Unit per meter etc...
     """
     betDiskDict = {'diskThickness': 0.05,
     'meshUnit': 1,
