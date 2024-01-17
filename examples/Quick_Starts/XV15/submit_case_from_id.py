@@ -4,7 +4,7 @@ import flow360 as fl
 
 case_name_list = []
 
-MESH_ID = "a823b33f-7523-4aa4-9881-99964917cc47"
+MESH_ID = "cfd9dbc1-367e-4737-bdb0-ae6b2622dfaf"
 
 # submit case
 
