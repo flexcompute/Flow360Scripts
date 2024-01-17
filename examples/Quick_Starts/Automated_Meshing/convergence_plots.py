@@ -1,4 +1,4 @@
-"""Plot the loads and residuals convergence plots for ONERA M6 quick-start"""
+"""Plot the loads and residuals convergence plots for ONERA M6 automeshing quick-start"""
 
 import os
 

@@ -1,4 +1,4 @@
-"""Plot the sectional loads for the ONERA M6 wing quick-start case"""
+"""Plot the sectional loads for the ONERA M6 wing automeshing quick-start case"""
 
 import os
 

@@ -1,4 +1,4 @@
-"""Download the results for the ONERA M6 Automeshing Quick-start"""
+"""Download the results for the ONERA M6 automeshing quick-start"""
 
 import os
 
