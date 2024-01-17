@@ -1,0 +1,25 @@
+{
+    "maxEdgeLength": 0.58, 
+    "curvatureResolutionAngle": 10,
+    "growthRate": 1.08, 
+    "edges": {
+        "wingleadingEdge":  {
+            "type": "aniso",
+            "method": "height",
+            "value": 4e-4
+        },
+        "wingtrailingEdge":  {
+            "type": "aniso",
+            "method": "height",
+            "value": 4e-4
+        },
+        "symmetry":  {
+            "type": "projectAnisoSpacing"
+        }
+    },
+    "faces": {
+        "wing": {
+            "maxEdgeLength": 0.40
+        }
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "refinementFactor": 1.0,
+    "farfield": {
+        "type": "quasi-3d"
+    },
+    "refinement": [
+        {
+            "type": "cylinder",
+            "radius": 1.1,
+            "length": 1.0,
+            "spacing": 0.08,
+            "axis": [0,1,0],
+            "center": [0.7,0.5,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 2.2,
+            "length": 1.0,
+            "spacing": 0.13,
+            "axis": [0,1,0],
+            "center": [0.7,0.5,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 3.3,
+            "length": 1.0,
+            "spacing": 0.2,
+            "axis": [0,1,0],
+            "center": [0.7,0.5,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 4.5,
+            "length": 1.0,
+            "spacing": 0.25,
+            "axis": [0,1,0],
+            "center": [0.7,0.5,0]
+        },
+        {
+            "type": "cylinder",
+            "radius": 6.5,
+            "length": 14.5,
+            "spacing": 0.29,
+            "axis": [-1,0,0],
+            "center": [2,0.5,0]
+        }
+    ],
+    "volume": {
+        "firstLayerThickness": 4.29e-06,
+        "growthRate": 1.04
+    }
+}
